@@ -1,0 +1,71 @@
+@startuml
+"Диаграмма вариантов использования — Сайт доставки еды" as title
+left to right direction
+skinparam packageStyle rect
+skinparam actorStyle awesome
+
+actor "Клиент" as Client
+actor "Оператор / Менеджер" as Operator
+actor "Администратор" as Admin
+actor "Курьер" as Courier
+
+package "Публичная часть" {
+  usecase "Просмотр меню" as UC_ViewMenu
+  usecase "Поиск / Фильтрация" as UC_Search
+  usecase "Просмотр карточки товара" as UC_ViewItem
+  usecase "Добавить в корзину" as UC_AddCart
+  usecase "Управление корзиной" as UC_ManageCart
+  usecase "Оформление заказа" as UC_Checkout
+  usecase "Оплата (нал/онлайн)" as UC_Pay
+  usecase "Бронирование столика" as UC_Reserve
+  usecase "Оставить отзыв / рейтинг" as UC_Feedback
+  usecase "Просмотр статуса и отслеживание" as UC_Track
+  usecase "Просмотр истории заказов" as UC_History
+  usecase "Повтор заказа" as UC_Reorder
+}
+
+package "Административная часть" {
+  usecase "Управление заказами" as UC_ManageOrders
+  usecase "Управление меню (CRUD)" as UC_ManageMenu
+  usecase "Управление клиентами" as UC_ManageClients
+  usecase "Управление изображениями" as UC_ManageMedia
+  usecase "Генерация отчётов" as UC_Reports
+  usecase "Настройки системы" as UC_Settings
+}
+
+' Связи клиента
+Client --> UC_ViewMenu
+Client --> UC_Search
+Client --> UC_ViewItem
+Client --> UC_AddCart
+Client --> UC_ManageCart
+Client --> UC_Checkout
+Client --> UC_Pay
+Client --> UC_Reserve
+Client --> UC_Feedback
+Client --> UC_Track
+Client --> UC_History
+Client --> UC_Reorder
+
+' Операторские связи
+Operator --> UC_ManageOrders
+Operator --> UC_ManageMenu
+Operator --> UC_ManageClients
+Operator --> UC_ManageMedia
+Operator --> UC_Reports
+
+' Админ
+Admin --> UC_Settings
+Admin --> UC_ManageMenu
+Admin --> UC_Reports
+Admin --> UC_ManageClients
+
+' Курьер
+Courier --> UC_Track
+Courier --> UC_ManageOrders
+
+' Включения и отношения (опционально)
+UC_Checkout .down.> UC_Pay : includes
+UC_Reorder .down.> UC_ManageCart : uses
+
+@enduml

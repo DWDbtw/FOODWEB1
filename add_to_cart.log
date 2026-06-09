@@ -1,0 +1,6 @@
+[2026-06-09 16:19:23] REQUEST start: method=POST cookie_sid=g0qn04p36vf8ocemvcokkkhul6
+[2026-06-09 16:19:23] COUNT returning total=2 session_cart={"3":2}
+[2026-06-09 16:19:24] REQUEST start: method=POST cookie_sid=g0qn04p36vf8ocemvcokkkhul6
+[2026-06-09 16:19:24] ADD menu_id=3 new_total=3 session_cart={"3":3}
+[2026-06-09 16:19:24] REQUEST start: method=POST cookie_sid=g0qn04p36vf8ocemvcokkkhul6
+[2026-06-09 16:19:24] ADD menu_id=3 new_total=4 session_cart={"3":4}

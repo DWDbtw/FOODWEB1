@@ -1,0 +1,95 @@
+@startuml
+actor "Гость / Клиент" as Client
+actor "Администратор" as Admin
+
+rectangle "Публичный сайт" {
+  usecase "Просмотр меню" as UC1
+  usecase "Добавление в корзину" as UC2
+  usecase "Оформление заказа" as UC3
+  usecase "Бронирование столика" as UC4
+}
+
+rectangle "Админ-панель" {
+  usecase "Вход в админку" as UC5
+  usecase "Управление меню" as UC6
+  usecase "Управление категориями" as UC7
+  usecase "Просмотр заказов" as UC8
+  usecase "Управление клиентами" as UC9
+  usecase "Настройки сайта" as UC10
+}
+
+Client --> UC1
+Client --> UC2
+Client --> UC3
+Client --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+@enduml
+
+@startuml
+package "Публичный сайт" {
+  [index.php]
+  [order_food.php]
+  [table-reservation.php]
+  [add_to_cart.php]
+  [get_cart_items.php]
+  [check_table_availability.php]
+  [Includes/templates/header.php]
+  [Includes/templates/navbar.php]
+  [Includes/templates/footer.php]
+  [Includes/functions/functions.php]
+  [connect.php]
+}
+
+package "Админ-панель" {
+  [admin/index.php]
+  [admin/dashboard.php]
+  [admin/menus.php]
+  [admin/menu_categories.php]
+  [admin/clients.php]
+  [admin/users.php]
+  [admin/website-settings.php]
+  [admin/connect.php]
+}
+
+database "MySQL DB" as DB
+
+[index.php] --> [connect.php]
+[order_food.php] --> [connect.php]
+[table-reservation.php] --> [connect.php]
+[add_to_cart.php] --> [connect.php]
+[get_cart_items.php] --> [connect.php]
+[check_table_availability.php] --> [connect.php]
+[admin/index.php] --> [admin/connect.php]
+[admin/dashboard.php] --> [admin/connect.php]
+[admin/menus.php] --> [admin/connect.php]
+[admin/menu_categories.php] --> [admin/connect.php]
+[admin/clients.php] --> [admin/connect.php]
+[admin/users.php] --> [admin/connect.php]
+[admin/website-settings.php] --> [admin/connect.php]
+[connect.php] --> DB
+[admin/connect.php] --> DB
+
+[index.php] --> [Includes/templates/header.php]
+[order_food.php] --> [Includes/templates/header.php]
+[table-reservation.php] --> [Includes/templates/header.php]
+[admin/index.php] --> [Includes/templates/header.php]
+
+[index.php] --> [Includes/templates/navbar.php]
+[order_food.php] --> [Includes/templates/navbar.php]
+[table-reservation.php] --> [Includes/templates/navbar.php]
+[admin/dashboard.php] --> [Includes/templates/navbar.php]
+
+[index.php] --> [Includes/templates/footer.php]
+[order_food.php] --> [Includes/templates/footer.php]
+[table-reservation.php] --> [Includes/templates/footer.php]
+[admin/dashboard.php] --> [Includes/templates/footer.php]
+
+[order_food.php] --> [get_cart_items.php]
+[table-reservation.php] --> [check_table_availability.php]
+
+@enduml

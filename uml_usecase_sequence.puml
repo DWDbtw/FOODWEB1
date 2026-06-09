@@ -1,0 +1,74 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+title UML Use Case Diagram for Food Delivery Website
+
+actor "Customer / Guest" as Customer
+actor "Manager" as Manager
+actor "Administrator" as Admin
+
+package "Public Website" {
+  usecase "Browse Menu" as UC1
+  usecase "Manage Cart" as UC2
+  usecase "Place Order" as UC3
+  usecase "Reserve Table" as UC5
+  usecase "View Order History" as UC4
+}
+
+package "Admin Panel" {
+  usecase "Authenticate" as UC10
+  usecase "Manage Orders" as UC6
+  usecase "Manage Menu" as UC7
+  usecase "Manage Customers" as UC8
+  usecase "Generate Reports" as UC9
+}
+
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Customer --> UC5
+Customer --> UC4
+
+Manager --> UC10
+Manager --> UC6
+Manager --> UC4
+
+Admin --> UC10
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC4
+
+UC3 .> UC10 : <<include>>
+UC6 .> UC10 : <<include>>
+UC4 .> UC10 : <<include>>
+UC1 .> UC2 : <<extend>>
+
+@enduml
+
+@startuml
+title Sequence Diagram: Order Placement Flow
+
+autonumber
+actor Customer
+participant "Website UI" as UI
+participant "Cart Service" as Cart
+participant "Order Service" as Order
+database "MySQL DB" as DB
+participant "Email Service" as Email
+
+Customer -> UI : Select items
+UI -> Cart : Add item to cart
+Cart --> UI : Cart updated
+Customer -> UI : Proceed to checkout
+UI -> Order : Submit order data
+Order -> DB : Save order, order_items, client
+DB --> Order : Order saved
+Order -> Email : Send confirmation email
+Email --> Customer : Email notification
+Order --> UI : Order confirmation
+UI --> Customer : Show order success
+
+@enduml

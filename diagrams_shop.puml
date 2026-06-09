@@ -1,0 +1,264 @@
+﻿@startuml
+title Food Delivery Website Use Case Diagram
+
+actor "Customer (Guest)" as Customer
+ actor "Manager" as Manager
+ actor "Administrator" as Admin
+
+ rectangle "Public Website" {
+   usecase "Browse Menu (UC1)" as UC1
+   usecase "Manage Cart (UC2)" as UC2
+   usecase "Place Order (UC3)" as UC3
+   usecase "View Order History (UC4)" as UC4
+   usecase "Reserve Table (UC5)" as UC5
+ }
+
+ rectangle "Admin Panel - Manager" {
+   usecase "Authenticate (UC10)" as UC10
+   usecase "Manage Orders (UC6)" as UC6
+   usecase "View Customer Orders (UC4_m)" as UC4_m
+ }
+
+ rectangle "Admin Panel - Administrator" {
+   usecase "Manage Menu (UC7)" as UC7
+   usecase "Manage Customers (UC8)" as UC8
+   usecase "Generate Reports (UC9)" as UC9
+ }
+
+ Customer --> UC1
+ Customer --> UC2
+ Customer --> UC3
+ Customer --> UC5
+
+ Manager --> UC10
+ Manager --> UC6
+ Manager --> UC4_m
+
+ Admin --> UC10
+ Admin --> UC6
+ Admin --> UC4_m
+ Admin --> UC7
+ Admin --> UC8
+ Admin --> UC9
+
+ UC1 .> UC2 : <<extend>>
+ UC3 .> UC10 : <<include>>
+ UC6 .> UC4_m : <<include>>
+
+@enduml
+
+@startuml
+title Component Diagram for Food Delivery Website
+
+package "Client Side (Frontend)" {
+   [index.php - Home page]
+   [order_food.php - Place order]
+   [table-reservation.php - Table booking]
+   [Design/css/main.css - Styles]
+   [Design/js/main.js - Scripts]
+ }
+
+ package "API Endpoints" {
+   [add_to_cart.php - Add to cart]
+   [get_cart_items.php - Get cart items]
+   [check_table_availability.php - Check table availability]
+   [submit_order.php - Submit order]
+ }
+
+ package "Admin Panel" {
+   [admin/dashboard.php - Dashboard]
+   [admin/menus.php - Menu management]
+   [admin/menu_categories.php - Category management]
+   [admin/clients.php - Customer management]
+   [admin/users.php - User management]
+   [admin/website-settings.php - Website settings]
+   [admin/Design/css/main.css - Admin styles]
+   [admin/Design/js/main.js - Admin scripts]
+ }
+
+ package "Backend Logic" {
+   [Includes/functions/functions.php - Utility functions]
+   [Includes/templates/header.php - Header]
+   [Includes/templates/navbar.php - Navbar]
+   [Includes/templates/footer.php - Footer]
+   [Includes/libraries/PHPMailer/class.phpmailer.php - Email]
+ }
+
+ package "Connection and Database" {
+   [connect.php - MySQL connection]
+   [admin/connect.php - Admin connection]
+ }
+
+database "MySQL (food_delivery)" as DB
+
+ [index.php - Home page] --> [connect.php - MySQL connection]
+ [order_food.php - Place order] --> [connect.php - MySQL connection]
+ [table-reservation.php - Table booking] --> [connect.php - MySQL connection]
+ [add_to_cart.php - Add to cart] --> [connect.php - MySQL connection]
+ [get_cart_items.php - Get cart items] --> [connect.php - MySQL connection]
+ [check_table_availability.php - Check table availability] --> [connect.php - MySQL connection]
+ [submit_order.php - Submit order] --> [connect.php - MySQL connection]
+
+ [admin/dashboard.php - Dashboard] --> [admin/connect.php - Admin connection]
+ [admin/menus.php - Menu management] --> [admin/connect.php - Admin connection]
+ [admin/menu_categories.php - Category management] --> [admin/connect.php - Admin connection]
+ [admin/clients.php - Customer management] --> [admin/connect.php - Admin connection]
+ [admin/users.php - User management] --> [admin/connect.php - Admin connection]
+ [admin/website-settings.php - Website settings] --> [admin/connect.php - Admin connection]
+
+ [connect.php - MySQL connection] --> DB
+ [admin/connect.php - Admin connection] --> DB
+
+ [index.php - Home page] --> [Includes/templates/header.php - Header]
+ [order_food.php - Place order] --> [Includes/templates/header.php - Header]
+ [table-reservation.php - Table booking] --> [Includes/templates/header.php - Header]
+ [admin/dashboard.php - Dashboard] --> [Includes/templates/header.php - Header]
+
+ [index.php - Home page] --> [Includes/templates/navbar.php - Navbar]
+ [order_food.php - Place order] --> [Includes/templates/navbar.php - Navbar]
+ [table-reservation.php - Table booking] --> [Includes/templates/navbar.php - Navbar]
+ [admin/dashboard.php - Dashboard] --> [Includes/templates/navbar.php - Navbar]
+
+ [index.php - Home page] --> [Includes/templates/footer.php - Footer]
+ [order_food.php - Place order] --> [Includes/templates/footer.php - Footer]
+ [table-reservation.php - Table booking] --> [Includes/templates/footer.php - Footer]
+ [admin/dashboard.php - Dashboard] --> [Includes/templates/footer.php - Footer]
+
+ [index.php - Home page] --> [Design/css/main.css - Styles]
+ [order_food.php - Place order] --> [Design/css/main.css - Styles]
+ [table-reservation.php - Table booking] --> [Design/css/main.css - Styles]
+
+ [index.php - Home page] --> [Design/js/main.js - Scripts]
+ [order_food.php - Place order] --> [Design/js/main.js - Scripts]
+
+ [order_food.php - Place order] --> [Includes/functions/functions.php - Utility functions]
+ [table-reservation.php - Table booking] --> [Includes/functions/functions.php - Utility functions]
+ [submit_order.php - Submit order] --> [Includes/libraries/PHPMailer/class.phpmailer.php - Email]
+
+@enduml
+
+@startuml
+title Three-tier Architecture for Food Delivery Website
+
+package "Presentation Layer (Frontend)" {
+   [HTML5]
+   [CSS3]
+   [JavaScript ES6+]
+   [Bootstrap 5.3]
+   note right of [HTML5]
+     Semantic markup
+     Schema.org microdata
+     Responsive design
+   end note
+ }
+
+ package "Business Logic Layer (Backend)" {
+   [PHP 8.0 (OOP)]
+   [Classes: Database, Cart, Order, Auth, MenuItem, Category]
+   [AJAX API endpoints]
+   [Data validation]
+   [Session management]
+   note right of [PHP 8.0 (OOP)]
+     Singleton pattern
+     PDO prepared statements
+     Two-level validation
+   end note
+ }
+
+ package "Data Layer (Database)" {
+   [MySQL 8.0]
+   [InnoDB transactions]
+   [Tables: categories, menu_items, clients, placed_orders, in_order, reservations]
+   note right of [MySQL 8.0]
+     Relational model
+     Foreign keys
+     Index optimization
+   end note
+ }
+
+ [HTML5] --> [PHP 8.0 (OOP)]
+ [CSS3] --> [PHP 8.0 (OOP)]
+ [JavaScript ES6+] --> [PHP 8.0 (OOP)]
+ [Bootstrap 5.3] --> [PHP 8.0 (OOP)]
+
+ [PHP 8.0 (OOP)] --> [MySQL 8.0]
+ [Classes: Database, Cart, Order, Auth, MenuItem, Category] --> [MySQL 8.0]
+ [AJAX API endpoints] --> [MySQL 8.0]
+ [Session management] --> [MySQL 8.0]
+
+@enduml
+
+@startuml
+title ER Diagram
+
+entity categories {
+   id : INT
+   name : VARCHAR
+   description : TEXT
+   image_icon : VARCHAR
+   sort_order : INT
+ }
+
+entity menu_items {
+   id : INT
+   category_id : INT
+   name : VARCHAR
+   description : TEXT
+   price : DECIMAL
+   weight : INT
+   image_url : VARCHAR
+   is_available : BOOLEAN
+   is_hit : BOOLEAN
+   created_at : TIMESTAMP
+ }
+
+entity clients {
+   id : INT
+   phone : VARCHAR
+   name : VARCHAR
+   email : VARCHAR
+   total_orders_sum : DECIMAL
+   bonus_points : INT
+   created_at : TIMESTAMP
+ }
+
+entity placed_orders {
+   id : INT
+   client_id : INT
+   order_date : DATETIME
+   delivery_address : VARCHAR
+   delivery_date : DATE
+   delivery_time : TIME
+   total_sum : DECIMAL
+   delivery_cost : DECIMAL
+   status : VARCHAR
+   courier_comment : TEXT
+   created_at : TIMESTAMP
+ }
+
+entity in_order {
+   order_id : INT
+   menu_item_id : INT
+   quantity : INT
+   price_at_time : DECIMAL
+ }
+
+entity reservations {
+   id : INT
+   client_name : VARCHAR
+   client_phone : VARCHAR
+   reservation_date : DATE
+   reservation_time : TIME
+   persons_count : INT
+   comment : TEXT
+   status : VARCHAR
+   created_at : TIMESTAMP
+ }
+
+ categories ||--o{ menu_items : contains
+ clients ||--o{ placed_orders : makes
+ placed_orders ||--o{ in_order : has
+ menu_items ||--o{ in_order : included_in
+ clients ||--o{ reservations : creates
+
+@enduml
