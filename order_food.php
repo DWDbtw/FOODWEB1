@@ -521,24 +521,28 @@
                                 foreach ($items as $item) {
                                     echo '<div class="review_item_row" id="cart_row_' . $item['menu_id'] . '">';
                                         echo '<div class="review_item_name">' . htmlspecialchars($item['name']) . '</div>';
-                                        echo '<div class="review_item_qty">x ' . $item['qty'] . '</div>';
-                                        echo '<div class="review_item_price">' . $item['subtotal'] . '₽</div>';
+                                        echo '<div class="review_item_qty_controls">';
+                                            echo '<button type="button" class="qty_btn" onclick="changeQty(' . $item['menu_id'] . ', -1)">−</button>';
+                                            echo '<span class="qty_value" id="qty_' . $item['menu_id'] . '">' . $item['qty'] . '</span>';
+                                            echo '<button type="button" class="qty_btn" onclick="changeQty(' . $item['menu_id'] . ', 1)">+</button>';
+                                        echo '</div>';
+                                        echo '<div class="review_item_price" id="price_' . $item['menu_id'] . '">' . number_format($item['subtotal'], 0, '.', ' ') . '₽</div>';
                                         echo '<div class="review_item_remove">';
                                             echo '<button type="button" onclick="removeCartItem(' . $item['menu_id'] . ')" title="Удалить">✕</button>';
                                         echo '</div>';
                                     echo '</div>';
                                 }
                             }
-                            
+
                             echo '<div class="review_total" id="cart_total_row">';
-                                echo '<strong>Итого:</strong>';
-                                echo '<span id="cart_total_price">' . $cart_total . '₽</span>';
+                                echo '<span>Итого</span>';
+                                echo '<span id="cart_total_price">' . number_format($cart_total, 0, '.', ' ') . '₽</span>';
                             echo '</div>';
                         } else {
                             echo '<div class="cart_empty_state">';
                                 echo '<span class="cart_empty_icon">🛒</span>';
                                 echo '<p>Корзина пуста</p>';
-                                echo '<a href="index.php#menus" class="btn btn-primary">Выбрать блюда</a>';
+                                echo '<a href="index.php#menus" class="btn-go">Выбрать блюда</a>';
                             echo '</div>';
                         }
                     ?>
@@ -775,7 +779,74 @@
         
         var currentTab = 0;
 
-        // Remove item from cart
+        // cart prices per item (from PHP)
+        var cartPrices = <?php
+            $prices = [];
+            if (!empty($_SESSION['cart'])) {
+                foreach ($_SESSION['cart'] as $mid => $q) {
+                    $s = $con->prepare("SELECT menu_price FROM menus WHERE menu_id = ?");
+                    $s->execute([$mid]);
+                    $r = $s->fetch();
+                    if ($r) $prices[$mid] = (float)$r['menu_price'];
+                }
+            }
+            echo json_encode($prices);
+        ?>;
+
+        function recalcTotal() {
+            var cartJson = document.getElementById('cart_json');
+            var cart = {};
+            try { cart = JSON.parse(cartJson.value); } catch(e) {}
+            var total = 0;
+            for (var id in cart) {
+                var price = cartPrices[id] || 0;
+                total += price * cart[id];
+            }
+            var el = document.getElementById('cart_total_price');
+            if (el) el.textContent = Math.round(total).toLocaleString('ru-RU') + '₽';
+        }
+
+        function changeQty(menuId, delta) {
+            var cartJson = document.getElementById('cart_json');
+            var cart = {};
+            try { cart = JSON.parse(cartJson.value); } catch(e) {}
+            var current = cart[menuId] || 0;
+            var newQty = current + delta;
+
+            if (newQty <= 0) {
+                removeCartItem(menuId);
+                return;
+            }
+
+            fetch('add_to_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=update&menu_id=' + menuId + '&qty=' + newQty
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    cart[menuId] = newQty;
+                    cartJson.value = JSON.stringify(cart);
+
+                    var qtyEl = document.getElementById('qty_' + menuId);
+                    if (qtyEl) qtyEl.textContent = newQty;
+
+                    var price = cartPrices[menuId] || 0;
+                    var priceEl = document.getElementById('price_' + menuId);
+                    if (priceEl) priceEl.textContent = Math.round(price * newQty).toLocaleString('ru-RU') + '₽';
+
+                    var badge = document.getElementById('cart-count');
+                    if (badge) {
+                        badge.textContent = data.cart_total;
+                        badge.style.display = data.cart_total > 0 ? 'inline' : 'none';
+                    }
+
+                    recalcTotal();
+                }
+            });
+        }
+
         function removeCartItem(menuId) {
             fetch('add_to_cart.php', {
                 method: 'POST',
@@ -785,38 +856,34 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
-                    // Remove row from DOM
                     var row = document.getElementById('cart_row_' + menuId);
                     if (row) row.remove();
 
-                    // Update hidden cart_json
                     var cartJson = document.getElementById('cart_json');
                     var cart = {};
                     try { cart = JSON.parse(cartJson.value); } catch(e) {}
                     delete cart[menuId];
                     cartJson.value = JSON.stringify(cart);
 
-                    // Update cart badge
                     var badge = document.getElementById('cart-count');
                     if (badge) {
                         badge.textContent = data.cart_total;
                         badge.style.display = data.cart_total > 0 ? 'inline' : 'none';
                     }
 
-                    // Recalculate total
-                    var rows = document.querySelectorAll('.review_item_row');
-                    if (rows.length === 0) {
-                        // Cart is now empty
+                    recalcTotal();
+
+                    if (Object.keys(cart).length === 0) {
                         document.getElementById('cart_items_container').innerHTML =
                             '<div class="cart_empty_state">' +
                             '<span class="cart_empty_icon">🛒</span>' +
                             '<p>Корзина пуста</p>' +
-                            '<a href="index.php#menus" class="btn btn-primary">Выбрать блюда</a>' +
+                            '<a href="index.php#menus" class="btn-go">Выбрать блюда</a>' +
                             '</div>';
                         var nextBtn = document.getElementById('nextBtn');
                         if (nextBtn) nextBtn.disabled = true;
-                        var alert = document.getElementById('empty_cart_alert');
-                        if (alert) alert.style.display = 'block';
+                        var totalRow = document.getElementById('cart_total_row');
+                        if (totalRow) totalRow.style.display = 'none';
                     }
                 }
             });
@@ -1108,116 +1175,149 @@
     </script>
 
     <style type="text/css">
-        .review_tab_content
-        {
-            padding: 20px 0;
+        /* ── Cart styles (matching profile design) ── */
+        :root {
+            --cart-accent: #7B5CF0;
+            --cart-accent-light: #EDE9FB;
+            --cart-border: #E8E8E8;
+            --cart-bg: #F2F2F2;
+            --cart-text: #1A1A1A;
+            --cart-text-secondary: #6B6B6B;
+            --cart-radius: 12px;
         }
-        .review_category_name
-        {
-            font-size: 13px;
+        .review_tab_content { padding: 8px 0 20px; }
+
+        .review_category_name {
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            margin: 24px 0 8px 0;
-            color: #9e8a78;
+            color: var(--cart-text-secondary);
+            margin: 20px 0 8px;
         }
-        .review_item_row
-        {
+
+        .review_item_row {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px 14px;
+            gap: 12px;
+            padding: 14px 16px;
             margin-bottom: 6px;
-            border-radius: 8px;
-            background: #f9f7f5;
-            border: 1px solid #ede8e3;
-            transition: background 0.15s;
+            border-radius: var(--cart-radius);
+            background: #fff;
+            border: 1px solid var(--cart-border);
+            transition: border-color .15s;
         }
-        .review_item_row:hover { background: #f1ece6; }
-        .review_item_name
-        {
+        .review_item_row:hover { border-color: #c9bdf5; }
+
+        .review_item_name {
             flex: 1;
             font-size: 15px;
             font-weight: 500;
-            color: #222;
+            color: var(--cart-text);
         }
-        .review_item_qty
-        {
-            width: 50px;
+
+        /* qty controls */
+        .review_item_qty_controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .qty_btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1.5px solid var(--cart-border);
+            background: #fff;
+            color: var(--cart-text);
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s, border-color .15s;
+        }
+        .qty_btn:hover {
+            background: var(--cart-accent-light);
+            border-color: var(--cart-accent);
+            color: var(--cart-accent);
+        }
+        .qty_value {
+            width: 28px;
             text-align: center;
-            font-size: 14px;
-            color: #666;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--cart-text);
         }
-        .review_item_price
-        {
+
+        .review_item_price {
             width: 90px;
             text-align: right;
             font-weight: 700;
             font-size: 15px;
-            color: #333;
+            color: var(--cart-text);
         }
-        .review_item_remove
-        {
-            width: 32px;
-            text-align: center;
-            margin-left: 10px;
-        }
-        .review_item_remove button
-        {
+
+        .review_item_remove button {
             background: none;
             border: none;
             cursor: pointer;
             color: #ccc;
             font-size: 18px;
-            line-height: 1;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: color 0.15s, background 0.15s;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color .15s, background .15s;
         }
-        .review_item_remove button:hover
-        {
+        .review_item_remove button:hover {
             color: #e74c3c;
-            background: #ffeaea;
+            background: #fdecea;
         }
-        .review_total
-        {
+
+        .review_total {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
-            padding: 16px 14px;
-            border-radius: 8px;
-            background: #f0ebe4;
-            font-size: 20px;
-            font-weight: bold;
-            color: #222;
-        }
-        .cart_empty_state
-        {
-            text-align: center;
-            padding: 50px 20px;
-            color: #aaa;
-        }
-        .cart_empty_state .cart_empty_icon
-        {
-            font-size: 56px;
-            margin-bottom: 16px;
-            display: block;
-        }
-        .cart_empty_state p
-        {
+            margin-top: 16px;
+            padding: 18px 20px;
+            border-radius: var(--cart-radius);
+            background: var(--cart-accent-light);
             font-size: 18px;
-            margin-bottom: 20px;
-            color: #888;
+            font-weight: 700;
+            color: var(--cart-accent);
         }
-        .cart_empty_state .btn-primary
-        {
-            background: #9e8a78;
-            border-color: #9e8a78;
-            padding: 10px 28px;
-            font-size: 15px;
-            border-radius: 6px;
+
+        /* empty state */
+        .cart_empty_state {
+            text-align: center;
+            padding: 60px 20px;
         }
+        .cart_empty_state .cart_empty_icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 16px;
+            opacity: .4;
+        }
+        .cart_empty_state p {
+            font-size: 17px;
+            color: var(--cart-text-secondary);
+            margin-bottom: 24px;
+        }
+        .cart_empty_state .btn-go {
+            display: inline-block;
+            padding: 12px 32px;
+            background: var(--cart-accent);
+            color: #fff;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .cart_empty_state .btn-go:hover { background: #6A4DE0; }
         
         /* EXTRAS SECTION STYLES — redesigned */
         .extras_grid {
