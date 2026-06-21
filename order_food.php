@@ -519,22 +519,26 @@
                             foreach ($grouped_items as $category => $items) {
                                 echo '<div class="review_category_name">' . htmlspecialchars($category) . '</div>';
                                 foreach ($items as $item) {
-                                    echo '<div class="review_item_row">';
+                                    echo '<div class="review_item_row" id="cart_row_' . $item['menu_id'] . '">';
                                         echo '<div class="review_item_name">' . htmlspecialchars($item['name']) . '</div>';
                                         echo '<div class="review_item_qty">x ' . $item['qty'] . '</div>';
                                         echo '<div class="review_item_price">' . $item['subtotal'] . '₽</div>';
+                                        echo '<div class="review_item_remove">';
+                                            echo '<button type="button" onclick="removeCartItem(' . $item['menu_id'] . ')" title="Удалить">✕</button>';
+                                        echo '</div>';
                                     echo '</div>';
                                 }
                             }
                             
-                            echo '<div class="review_total">';
+                            echo '<div class="review_total" id="cart_total_row">';
                                 echo '<strong>Итого:</strong>';
-                                echo '<span>' . $cart_total . '₽</span>';
+                                echo '<span id="cart_total_price">' . $cart_total . '₽</span>';
                             echo '</div>';
                         } else {
-                            echo '<div style="text-align: center; padding: 30px; color: #999;">';
-                                echo '<p>Ваша корзина пуста</p>';
-                                echo '<p><a href="index.php#menus" class="btn btn-primary">Выбрать блюда</a></p>';
+                            echo '<div class="cart_empty_state">';
+                                echo '<span class="cart_empty_icon">🛒</span>';
+                                echo '<p>Корзина пуста</p>';
+                                echo '<a href="index.php#menus" class="btn btn-primary">Выбрать блюда</a>';
                             echo '</div>';
                         }
                     ?>
@@ -770,7 +774,54 @@
     <script type="text/javascript">
         
         var currentTab = 0;
-        
+
+        // Remove item from cart
+        function removeCartItem(menuId) {
+            fetch('add_to_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=update&menu_id=' + menuId + '&qty=0'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    // Remove row from DOM
+                    var row = document.getElementById('cart_row_' + menuId);
+                    if (row) row.remove();
+
+                    // Update hidden cart_json
+                    var cartJson = document.getElementById('cart_json');
+                    var cart = {};
+                    try { cart = JSON.parse(cartJson.value); } catch(e) {}
+                    delete cart[menuId];
+                    cartJson.value = JSON.stringify(cart);
+
+                    // Update cart badge
+                    var badge = document.getElementById('cart-count');
+                    if (badge) {
+                        badge.textContent = data.cart_total;
+                        badge.style.display = data.cart_total > 0 ? 'inline' : 'none';
+                    }
+
+                    // Recalculate total
+                    var rows = document.querySelectorAll('.review_item_row');
+                    if (rows.length === 0) {
+                        // Cart is now empty
+                        document.getElementById('cart_items_container').innerHTML =
+                            '<div class="cart_empty_state">' +
+                            '<span class="cart_empty_icon">🛒</span>' +
+                            '<p>Корзина пуста</p>' +
+                            '<a href="index.php#menus" class="btn btn-primary">Выбрать блюда</a>' +
+                            '</div>';
+                        var nextBtn = document.getElementById('nextBtn');
+                        if (nextBtn) nextBtn.disabled = true;
+                        var alert = document.getElementById('empty_cart_alert');
+                        if (alert) alert.style.display = 'block';
+                    }
+                }
+            });
+        }
+
         // Check if cart is empty on page load
         function checkCartStatus() {
             var cartJson = document.getElementById('cart_json').value;
@@ -1063,33 +1114,70 @@
         }
         .review_category_name
         {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 20px 0 10px 0;
-            color: #000000;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 24px 0 8px 0;
+            color: #9e8a78;
         }
         .review_item_row
         {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            background: #f9f7f5;
+            border: 1px solid #ede8e3;
+            transition: background 0.15s;
         }
+        .review_item_row:hover { background: #f1ece6; }
         .review_item_name
         {
             flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: #222;
         }
         .review_item_qty
         {
             width: 50px;
             text-align: center;
+            font-size: 14px;
+            color: #666;
         }
         .review_item_price
         {
-            width: 80px;
+            width: 90px;
             text-align: right;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 15px;
+            color: #333;
+        }
+        .review_item_remove
+        {
+            width: 32px;
+            text-align: center;
+            margin-left: 10px;
+        }
+        .review_item_remove button
+        {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 18px;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+        }
+        .review_item_remove button:hover
+        {
+            color: #e74c3c;
+            background: #ffeaea;
         }
         .review_total
         {
@@ -1097,10 +1185,38 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 2px solid #AFC4D5;
+            padding: 16px 14px;
+            border-radius: 8px;
+            background: #f0ebe4;
             font-size: 20px;
             font-weight: bold;
+            color: #222;
+        }
+        .cart_empty_state
+        {
+            text-align: center;
+            padding: 50px 20px;
+            color: #aaa;
+        }
+        .cart_empty_state .cart_empty_icon
+        {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: block;
+        }
+        .cart_empty_state p
+        {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #888;
+        }
+        .cart_empty_state .btn-primary
+        {
+            background: #9e8a78;
+            border-color: #9e8a78;
+            padding: 10px 28px;
+            font-size: 15px;
+            border-radius: 6px;
         }
         
         /* EXTRAS SECTION STYLES — redesigned */
