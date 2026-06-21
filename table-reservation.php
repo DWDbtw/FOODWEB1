@@ -1,5 +1,3 @@
-<!-- PHP INCLUDES -->
-
 <?php
     //Set page title
     $pageTitle = 'Бронирование столика в суши-ресторане';
