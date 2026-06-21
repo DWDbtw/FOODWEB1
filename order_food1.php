@@ -353,19 +353,9 @@
                         }
 
                         // Get or create client
-                        $stmtgetCurrentClientID = $con->prepare("SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'restaurant_website' AND TABLE_NAME = 'clients'");
-            
-                        $stmtgetCurrentClientID->execute();
-                        $client_id = $stmtgetCurrentClientID->fetch();
-
                         $stmtClient = $con->prepare("insert into clients(client_name,client_phone,client_email, user_id) values(?,?,?,?)");
                         $stmtClient->execute(array($client_full_name,$client_phone_number,$client_email, $registered_user_id));
-
-                        // Get current order ID
-                        $stmtgetCurrentOrderID = $con->prepare("SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'restaurant_website' AND TABLE_NAME = 'placed_orders'");
-            
-                        $stmtgetCurrentOrderID->execute();
-                        $order_id = $stmtgetCurrentOrderID->fetch();
+                        $client_id_val = $con->lastInsertId();
                         
                         // Calculate bonuses earned for this order
                         $bonuses_earned = calculate_order_bonuses($con, $cart_total);
@@ -375,7 +365,7 @@
                                                      values(?, ?, ?, ?, ?, ?, ?)");
                         $stmt_order->execute(array(
                             Date("Y-m-d H:i"),
-                            $client_id[0],
+                            $client_id_val,
                             $registered_user_id,
                             $delivery_address,
                             $bonuses_earned,
@@ -386,17 +376,17 @@
                         // Add items to order
                         foreach($selected_menus as $menu) {
                             $stmt = $con->prepare("insert into in_order(order_id, menu_id) values(?, ?)");
-                            $stmt->execute(array($order_id[0], $menu));
+                            $stmt->execute(array($order_id_val, $menu));
                         }
                         
                         // Add bonuses to account if user is registered (new or existing)
                         $bonus_user_id = $registered_user_id ? $registered_user_id : ($is_logged_in ? $current_user_id : null);
                         if ($bonus_user_id) {
-                            add_bonuses($con, $bonus_user_id, $order_id[0], $bonuses_earned);
+                            add_bonuses($con, $bonus_user_id, $order_id_val, $bonuses_earned);
                             
                             // Deduct bonuses if spent
                             if ($discount_amount > 0) {
-                                spend_bonuses($con, $bonus_user_id, $order_id[0], $discount_amount);
+                                spend_bonuses($con, $bonus_user_id, $order_id_val, $discount_amount);
                             }
                         }
                         
@@ -407,7 +397,7 @@
                         
                         echo "<div class='alert alert-success' style='margin-top: 20px;'>";
                             echo "<h4>✓ Отлично! Ваш заказ успешно создан.</h4>";
-                            echo "<p><strong>Номер заказа:</strong> " . $order_id[0] . "</p>";
+                            echo "<p><strong>Номер заказа:</strong> " . $order_id_val . "</p>";
                             echo "<p><strong>Время заказа:</strong> " . Date("Y-m-d H:i") . "</p>";
                             echo "<p><strong>Адрес доставки:</strong> " . htmlspecialchars($delivery_address) . "</p>";
                             echo "<p><strong>Контактный телефон:</strong> " . htmlspecialchars($client_phone_number) . "</p>";

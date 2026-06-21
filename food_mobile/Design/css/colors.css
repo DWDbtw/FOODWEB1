@@ -1,0 +1,25 @@
+:root {
+  --bg-dark: #121618;
+  --header-bg: #222227;
+  --card-bg: #FFFFFF;
+  --text-main: #FFFFFF;
+  --text-muted: #DDDDDD;
+  --accent-soft: #AFC4D5;
+  --accent-strong: #E63946;
+  --success: #2ECC71;
+  --danger: #E74C3C;
+  --border: #333333;
+}
+
+/* Swatch helper classes */
+.color-swatch { display:inline-block; width:140px; height:80px; border-radius:6px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); margin:8px; border:1px solid var(--border); }
+.swatch-label{ font-family: Arial, Helvetica, sans-serif; font-size:12px; margin-top:6px; color:var(--text-muted); }
+
+.bg-dark { background:var(--bg-dark); }
+.header-bg { background:var(--header-bg); }
+.card-bg { background:var(--card-bg); }
+.accent-soft { background:var(--accent-soft); }
+.accent-strong { background:var(--accent-strong); }
+.success { background:var(--success); }
+.danger { background:var(--danger); }
+.text-muted { color:var(--text-muted); }
