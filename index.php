@@ -215,35 +215,30 @@ $catName = strtolower($row['category_name']);
 										?>
 
 <div class="col-md-4 col-lg-3 menu-column">
-	<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
-	<div class="thumbnail menu-item" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-menu-weight="<?php echo isset($menu['menu_weight']) ? htmlspecialchars($menu['menu_weight'], ENT_QUOTES) : ''; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
+												<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
+												<div class="thumbnail menu-item" style="cursor:pointer" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
 
-		<div class="menu-image product-photo" title="Подробнее о товаре">
-			<div class="image-preview">
-				<div style="background-image: url('<?php echo $source; ?>');"></div>
-			</div>
-			<?php if (isset($menu['menu_weight']) && $menu['menu_weight'] !== '') { ?>
-				<span class="menu-weight-badge"><?php echo htmlspecialchars($menu['menu_weight'], ENT_QUOTES); ?> г</span>
-			<?php } ?>
-		</div>
-
-		<div class="caption">
-			<h5>
-				<span class="menu-name"><?php echo $menu['menu_name'];?></span>
-				<?php if ($is_manager_or_admin) { ?>
-					<button type="button" class="quick-edit" title="Редактировать" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-				<?php } ?>
-			</h5>
-			<p class="menu-desc-text">
-				<?php echo $menu['menu_description']; ?>
-			</p>
-			<div class="card-bottom-row">
-				<span class="menu_price"><?php echo $menu['menu_price']."₽"; ?></span>
-				<button type="button" class="btn-add-cart">В корзину</button>
-			</div>
-		</div>
-	</div>
-</div>
+													<div class="menu-image">
+														<div class="image-preview">
+															<div style="background-image: url('<?php echo $source; ?>');"></div>
+														</div>
+													</div>
+                                                        
+								<div class="caption">
+									<h5 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+										<span class="menu-name"><?php echo htmlspecialchars($menu['menu_name']); ?></span>
+										<?php if ($is_manager_or_admin) { ?>
+											<button type="button" class="quick-edit" title="Редактировать" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+										<?php } ?>
+									</h5>
+									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
+									<div class="card-footer-row">
+										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.','Â ')."₽"; ?></span>
+										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">В корзину</button>
+									</div>
+								</div>
+												</div>
+											</div>
 
 										<?php
 									}
@@ -289,36 +284,31 @@ $catName = strtolower($row['category_name']);
 																	{
 																		?>
 
-<div class="col-md-4 col-lg-3 menu-column">
-	<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
-	<div class="thumbnail menu-item" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-menu-weight="<?php echo isset($menu['menu_weight']) ? htmlspecialchars($menu['menu_weight'], ENT_QUOTES) : ''; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
+								<div class="col-md-4 col-lg-3 menu-column">
+																				<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
+																				<div class="thumbnail menu-item" style="cursor:pointer" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
 
-		<div class="menu-image product-photo" title="Подробнее о товаре">
-			<div class="image-preview">
-				<div style="background-image: url('<?php echo $source; ?>');"></div>
-			</div>
-			<?php if (isset($menu['menu_weight']) && $menu['menu_weight'] !== '') { ?>
-				<span class="menu-weight-badge"><?php echo htmlspecialchars($menu['menu_weight'], ENT_QUOTES); ?> г</span>
-			<?php } ?>
-		</div>
-
-		<div class="caption">
-			<h5>
-				<span class="menu-name-text"><?php echo $menu['menu_name'];?></span>
-				<?php if ($is_manager_or_admin) { ?>
-					<span class="edit-pencil" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>" style="cursor:pointer;opacity:0.85;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>
-				<?php } ?>
-			</h5>
-			<p class="menu-desc-text">
-				<?php echo $menu['menu_description']; ?>
-			</p>
-			<div class="card-bottom-row">
-				<span class="menu_price"><?php echo $menu['menu_price']."₽"; ?></span>
-				<button type="button" class="btn-add-cart">В корзину</button>
-			</div>
-		</div>
-	</div>
-</div>
+																					<div class="menu-image">
+																						<div class="image-preview">
+																							<div style="background-image: url('<?php echo $source; ?>');"></div>
+																						</div>
+																					</div>
+                                                        
+																													<div class="caption">
+									<h5 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+										<span class="menu-name-text"><?php echo htmlspecialchars($menu['menu_name']); ?></span>
+										<?php if ($is_manager_or_admin) { ?>
+											<span class="edit-pencil" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>" style="cursor:pointer;opacity:0.85;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>
+										<?php } ?>
+									</h5>
+									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
+									<div class="card-footer-row">
+										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.',' ')."₽"; ?></span>
+										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">В корзину</button>
+									</div>
+								</div>
+																				</div>
+																			</div>
 
 																		<?php
 																		}
@@ -358,334 +348,6 @@ $catName = strtolower($row['category_name']);
 
   	<!-- FOOTER BOTTOM  -->
 
-<style>
-/* ====================== PRODUCT CARD REDESIGN ====================== */
-.our_menus .menu-column { margin-bottom: 28px; }
-
-.our_menus .thumbnail.menu-item {
-	background: #fff;
-	border-radius: 18px;
-	overflow: hidden;
-	box-shadow: 0 8px 24px rgba(0,0,0,0.28);
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.our_menus .thumbnail.menu-item:hover {
-	transform: translateY(-3px);
-	box-shadow: 0 14px 32px rgba(0,0,0,0.32);
-}
-
-.our_menus .menu-image.product-photo {
-	position: relative;
-	cursor: zoom-in;
-	aspect-ratio: 1 / 0.92;
-	overflow: hidden;
-}
-.our_menus .menu-image.product-photo .image-preview,
-.our_menus .menu-image.product-photo .image-preview > div {
-	width: 100%;
-	height: 100%;
-}
-.our_menus .menu-image.product-photo .image-preview > div {
-	background-size: cover;
-	background-position: center;
-	transition: transform 0.35s ease;
-}
-.our_menus .menu-image.product-photo:hover .image-preview > div {
-	transform: scale(1.04);
-}
-.our_menus .menu-weight-badge {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	background: rgba(255,255,255,0.92);
-	color: #16161a;
-	font-size: 11px;
-	font-weight: 600;
-	padding: 4px 9px;
-	border-radius: 20px;
-	letter-spacing: 0.02em;
-	pointer-events: none;
-}
-
-.our_menus .thumbnail.menu-item .caption {
-	background: #fff;
-	padding: 14px 16px 16px;
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-}
-.our_menus .thumbnail.menu-item .caption h5 {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 8px;
-	margin: 0 0 6px;
-}
-.our_menus .thumbnail.menu-item .menu-name,
-.our_menus .thumbnail.menu-item .menu-name-text {
-	font-size: 15px;
-	font-weight: 700;
-	color: #16161a;
-	line-height: 1.3;
-}
-.our_menus .thumbnail.menu-item .menu-desc-text {
-	font-size: 12.5px;
-	line-height: 1.45;
-	color: #8e8e93;
-	margin: 0 0 12px;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-}
-.our_menus .card-bottom-row {
-	margin-top: auto;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-}
-.our_menus .card-bottom-row .menu_price {
-	font-size: 16px;
-	font-weight: 700;
-	color: #16161a;
-}
-.our_menus .btn-add-cart {
-	background: #f0f0f1;
-	color: #16161a;
-	border: none;
-	border-radius: 30px;
-	padding: 9px 18px;
-	font-size: 13px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: background 0.15s ease, transform 0.1s ease;
-	white-space: nowrap;
-}
-.our_menus .btn-add-cart:hover { background: #e2e2e4; }
-.our_menus .btn-add-cart:active { transform: scale(0.96); }
-.our_menus .btn-add-cart.added { background: #c9f2d6; color: #146c2e; }
-
-/* ====================== PRODUCT DETAILS MODAL ====================== */
-.product-modal-overlay {
-	position: fixed;
-	inset: 0;
-	background: rgba(0,0,0,0.65);
-	z-index: 10050;
-	display: none;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-}
-.product-modal-overlay.open { display: flex; }
-.product-modal {
-	background: #fff;
-	border-radius: 20px;
-	overflow: hidden;
-	max-width: 880px;
-	width: 100%;
-	max-height: 90vh;
-	display: flex;
-	box-shadow: 0 30px 70px rgba(0,0,0,0.5);
-	position: relative;
-}
-.product-modal-image {
-	flex: 1 1 48%;
-	min-height: 320px;
-	background-size: cover;
-	background-position: center;
-	background-color: #222;
-}
-.product-modal-info {
-	flex: 1 1 52%;
-	padding: 32px 34px;
-	display: flex;
-	flex-direction: column;
-	overflow-y: auto;
-}
-.product-modal-close {
-	position: absolute;
-	top: 14px;
-	right: 14px;
-	width: 34px;
-	height: 34px;
-	border-radius: 50%;
-	background: rgba(255,255,255,0.85);
-	border: none;
-	font-size: 20px;
-	line-height: 1;
-	color: #333;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 2;
-}
-.product-modal-close:hover { background: #fff; }
-.product-modal-title {
-	font-size: 23px;
-	font-weight: 700;
-	color: #16161a;
-	margin: 0 0 4px;
-}
-.product-modal-weight {
-	font-size: 13px;
-	color: #9a9a9e;
-	margin-bottom: 16px;
-}
-.product-modal-desc {
-	font-size: 14px;
-	line-height: 1.65;
-	color: #56565b;
-	margin-bottom: 22px;
-	white-space: pre-line;
-}
-.product-modal-spacer { flex: 1; }
-.product-modal-add-cart {
-	background: #6f5cf0;
-	color: #fff;
-	border: none;
-	border-radius: 14px;
-	padding: 16px;
-	font-size: 14px;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-	text-transform: uppercase;
-	cursor: pointer;
-	transition: opacity 0.15s ease;
-}
-.product-modal-add-cart:hover { opacity: 0.9; }
-.product-modal-add-cart.added { background: #2fae5c; }
-
-@media (max-width: 720px) {
-	.product-modal { flex-direction: column; max-height: 92vh; }
-	.product-modal-image { min-height: 220px; }
-	.product-modal-info { padding: 24px 20px; }
-}
-</style>
-
-<!-- CART TOAST NOTIFICATION -->
-<div id="cart-toast" style="display:none;position:fixed;bottom:20px;right:20px;background:#4CAF50;color:white;padding:15px 25px;border-radius:5px;z-index:9999;font-size:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></div>
-
-<!-- PRODUCT DETAILS MODAL (opens when a product photo is clicked) -->
-<div class="product-modal-overlay" id="productDetailsModal">
-	<div class="product-modal">
-		<button type="button" class="product-modal-close" id="productModalClose">&times;</button>
-		<div class="product-modal-image" id="pmImage"></div>
-		<div class="product-modal-info">
-			<h3 class="product-modal-title" id="pmName"></h3>
-			<div class="product-modal-weight" id="pmWeight" style="display:none;"></div>
-			<p class="product-modal-desc" id="pmDesc"></p>
-			<div class="product-modal-spacer"></div>
-			<button type="button" class="product-modal-add-cart" id="pmAddCart">В корзину</button>
-		</div>
-	</div>
-</div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-
-	function showToast(text) {
-		var toast = $('#cart-toast');
-		toast.text(text);
-		toast.fadeIn(200);
-		setTimeout(function() { toast.fadeOut(500); }, 2000);
-	}
-
-	function updateCartBadge(count) {
-		var badge = $('#cart-count');
-		if (count > 0) { badge.text(count).show(); }
-		else { badge.hide(); }
-	}
-
-	function addToCart(menuId, menuName, $btn, defaultLabel) {
-		$.ajax({
-			url: 'add_to_cart.php',
-			type: 'POST',
-			data: { action: 'add', menu_id: menuId },
-			success: function(response) {
-				if (response.success) {
-					showToast(menuName + ' добавлено в корзину');
-					updateCartBadge(response.cart_total);
-					if ($btn && $btn.length) {
-						$btn.addClass('added').text('Добавлено ✓');
-						setTimeout(function() {
-							$btn.removeClass('added').text(defaultLabel);
-						}, 1200);
-					}
-				}
-			}
-		});
-	}
-
-	// "В корзину" button on each product card
-	$(document).on('click', '.btn-add-cart', function(e) {
-		e.stopPropagation();
-		var $btn = $(this);
-		var $item = $btn.closest('.menu-item');
-		addToCart($item.data('menu-id'), $item.data('menu-name'), $btn, 'В корзину');
-	});
-
-	// Clicking the product photo opens the details modal
-	$(document).on('click', '.product-photo', function(e) {
-		var $item = $(this).closest('.menu-item');
-		var name = $item.data('menu-name');
-		var price = $item.data('menu-price');
-		var desc = $item.data('menu-desc');
-		var img = $item.data('menu-img');
-		var weight = $item.data('menu-weight');
-		var menuId = $item.data('menu-id');
-
-		$('#pmImage').css('background-image', "url('" + img + "')");
-		$('#pmName').text(name);
-		$('#pmDesc').text(desc);
-		if (weight) {
-			$('#pmWeight').text(weight + ' г').show();
-		} else {
-			$('#pmWeight').hide();
-		}
-		$('#pmAddCart').removeClass('added').text('В КОРЗИНУ ЗА ' + price + ' ₽')
-			.data('menu-id', menuId).data('menu-name', name).data('price', price);
-
-		$('#productDetailsModal').addClass('open');
-		$('body').css('overflow', 'hidden');
-	});
-
-	function closeProductModal() {
-		$('#productDetailsModal').removeClass('open');
-		$('body').css('overflow', '');
-	}
-
-	$('#productModalClose').on('click', closeProductModal);
-	$('#productDetailsModal').on('click', function(e) {
-		if (e.target === this) closeProductModal();
-	});
-	$(document).on('keydown', function(e) {
-		if (e.key === 'Escape') closeProductModal();
-	});
-
-	$('#pmAddCart').on('click', function() {
-		var $btn = $(this);
-		var price = $btn.data('price');
-		addToCart($btn.data('menu-id'), $btn.data('menu-name'), $btn, 'В КОРЗИНУ ЗА ' + price + ' ₽');
-	});
-
-	// Cart count on page load
-	$.ajax({
-		url: 'add_to_cart.php',
-		type: 'POST',
-		data: { action: 'count' },
-		success: function(response) {
-			if (response.success && response.cart_total > 0) {
-				updateCartBadge(response.cart_total);
-			}
-		}
-	});
-});
-</script>
 		<!-- Quick Add Modal (manager/admin) -->
 		<?php if ($is_manager_or_admin): ?>
 		<style>
@@ -1119,6 +781,121 @@ if($.trim(contact_name) == "")
 	</script>
 	<?php endif; ?>
 
+	<!-- PRODUCT MODAL -->
+	<div id="productModal">
+		<div class="pm-dialog">
+			<button class="pm-close" onclick="closeProductModal()">✕</button>
+			<div class="pm-img" id="pm_img_wrap">
+				<div class="pm-img-placeholder">🍣</div>
+			</div>
+			<div class="pm-body">
+				<div class="pm-name" id="pm_name"></div>
+				<div class="pm-desc" id="pm_desc"></div>
+				<div class="pm-price-row">
+					<div class="pm-price" id="pm_price"></div>
+					<button class="pm-cart-btn" id="pm_cart_btn">В корзину</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		// Product modal
+		var _pmMenuId = null;
+		function openProductModal(menuId, name, price, desc, imgSrc) {
+			_pmMenuId = menuId;
+			document.getElementById('pm_name').textContent = name;
+			document.getElementById('pm_desc').textContent = desc;
+			document.getElementById('pm_price').textContent = price + ' ₽';
+			var imgWrap = document.getElementById('pm_img_wrap');
+			if (imgSrc) {
+				imgWrap.innerHTML = '<img src="' + imgSrc + '" onerror="this.parentNode.innerHTML=\'<div class=pm-img-placeholder>🍣</div>\'">';
+			} else {
+				imgWrap.innerHTML = '<div class="pm-img-placeholder">🍣</div>';
+			}
+			var btn = document.getElementById('pm_cart_btn');
+			btn.className = 'pm-cart-btn';
+			btn.textContent = 'В корзину за ' + price + ' ₽';
+			btn.onclick = function() { addToCartModal(menuId, name, btn); };
+			document.getElementById('productModal').classList.add('open');
+			document.body.style.overflow = 'hidden';
+		}
+		function closeProductModal() {
+			document.getElementById('productModal').classList.remove('open');
+			document.body.style.overflow = '';
+		}
+		document.getElementById('productModal').addEventListener('click', function(e) {
+			if (e.target === this) closeProductModal();
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') closeProductModal();
+		});
+
+		function addToCartModal(menuId, menuName, btn) {
+			$.ajax({
+				url: 'add_to_cart.php',
+				type: 'POST',
+				data: { action: 'add', menu_id: menuId },
+				success: function(response) {
+					if (response.success) {
+						btn.textContent = '✓ Добавлено!';
+						btn.classList.add('added');
+						setTimeout(function() {
+							btn.classList.remove('added');
+							btn.textContent = 'В корзину';
+						}, 1500);
+						var badge = $('#cart-count');
+						if (response.cart_total > 0) badge.text(response.cart_total).show();
+						else badge.hide();
+					}
+				}
+			});
+		}
+
+		function addToCartBtn(btnEl, menuId, menuName) {
+			$.ajax({
+				url: 'add_to_cart.php',
+				type: 'POST',
+				data: { action: 'add', menu_id: menuId },
+				success: function(response) {
+					if (response.success) {
+						$(btnEl).text('✓').addClass('added');
+						setTimeout(function() {
+							$(btnEl).text('В корзину').removeClass('added');
+						}, 1500);
+						var badge = $('#cart-count');
+						if (response.cart_total > 0) badge.text(response.cart_total).show();
+						else badge.hide();
+					}
+				}
+			});
+		}
+
+	    $(document).ready(function() {
+			// Open product modal on card click
+			$(document).on('click', '.menu-item', function(e) {
+				if ($(e.target).closest('.quick-edit, .edit-pencil, .cart-btn').length) return;
+				var menuId    = $(this).data('menu-id');
+				var menuName  = $(this).data('menu-name');
+				var menuPrice = $(this).data('menu-price');
+				var menuDesc  = $(this).data('menu-desc');
+				var menuImg   = $(this).data('menu-img');
+				openProductModal(menuId, menuName, menuPrice, menuDesc, menuImg);
+			});
+
+			// Load cart count on page load
+			$.ajax({
+				url: 'add_to_cart.php',
+				type: 'POST',
+				data: { action: 'count' },
+				success: function(response) {
+					if (response.success && response.cart_total > 0) {
+						$('#cart-count').text(response.cart_total).show();
+					}
+				}
+			});
+	    });
+	</script>
 
 	<script>
 	// Fix anchor scroll offset for fixed navbar

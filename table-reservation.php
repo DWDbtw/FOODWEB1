@@ -1,4 +1,5 @@
 <?php
+    session_start();
     //Set page title
     $pageTitle = 'Бронирование столика в суши-ресторане';
 
@@ -10,163 +11,253 @@
 
 ?>
     
-    <style type="text/css">
-        .table_reservation_section
-        {
-            max-width: 850px;
-            margin: 50px auto;
-            min-height: 500px;
+    <style>
+        :root {
+            --rv-accent: #7B5CF0;
+            --rv-accent-light: #EDE9FB;
+            --rv-border: #E8E8E8;
+            --rv-bg: #F7F7F8;
+            --rv-text: #1A1A1A;
+            --rv-secondary: #6B6B6B;
+            --rv-radius: 14px;
         }
 
-        .check_availability_submit
-        {
-            background: #AFC4D5;
-            color: white;
-            border-color: #AFC4D5;
-            font-family: work sans,sans-serif;
+        body { background: var(--rv-bg); }
+
+        .rv-hero {
+            background: url(Design/images/food_pic.jpg) center/cover no-repeat;
+            position: relative;
+            min-height: 220px;
+            display: flex;
+            align-items: flex-end;
         }
-        .client_details_tab  .form-control
-        {
-            background-color: #fff;
-            border-radius: 0;
-            padding: 25px 10px;
-            box-shadow: none;
-            border: 2px solid #eee;
+        .rv-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(10,8,20,.35), rgba(10,8,20,.72));
+        }
+        .rv-hero-inner {
+            position: relative;
+            z-index: 1;
+            padding: 40px 40px 36px;
+        }
+        .rv-hero-inner h1 {
+            font-size: 38px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.5px;
+            margin: 0 0 6px;
+        }
+        .rv-hero-inner p {
+            color: rgba(255,255,255,.65);
+            font-size: 15px;
+            margin: 0;
         }
 
-        .client_details_tab  .form-control:focus 
-        {
-            border-color: #AFC4D5;
-            box-shadow: none;
-            outline: none;
-        }
-        .text_header
-        {
-            margin-bottom: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 1.5;
-            margin-top: 22px;
-            text-transform: capitalize;
-        }
-        .layer
-        {
-            height: 100%;
-            background: -moz-linear-gradient(top, rgba(45,45,45,0.4) 0%, rgba(45,45,45,0.9) 100%);
-            background: -webkit-linear-gradient(top, rgba(45,45,45,0.4) 0%, rgba(45,45,45,0.9) 100%);
-            background: linear-gradient(to bottom, rgba(45,45,45,0.4) 0%, rgba(45,45,45,0.9) 100%);
+        .rv-wrap {
+            max-width: 580px;
+            margin: 40px auto 80px;
+            padding: 0 20px;
         }
 
-        /* RESERVATION TABS STYLES */
-        .reservation_tab
-        {
-            display: none;
+        /* step bar */
+        .rv-steps {
+            display: flex;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 0;
         }
-
-        .next_prev_buttons
-        {
-            background-color: #4CAF50;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 17px;
-            cursor: pointer;
+        .rv-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
         }
-
-        .step 
-        {
-            height: 15px;
-            width: 15px;
-            margin: 0 2px;
-            background-color: #bbbbbb;
-            border: none;  
+        .rv-step-dot {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            display: inline-block;
-            opacity: 0.5;
+            background: #E8E8E8;
+            color: #999;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background .2s, color .2s;
+        }
+        .rv-step.active .rv-step-dot, .rv-step.done .rv-step-dot {
+            background: var(--rv-accent);
+            color: #fff;
+        }
+        .rv-step-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #aaa;
+            white-space: nowrap;
+        }
+        .rv-step.active .rv-step-label, .rv-step.done .rv-step-label {
+            color: var(--rv-accent);
+        }
+        .rv-step-line {
+            flex: 1;
+            height: 2px;
+            background: #E8E8E8;
+            margin: 0 6px;
+            border-radius: 2px;
+        }
+        .rv-step.done ~ .rv-step-line, .rv-step.active ~ .rv-step-line { background: var(--rv-accent-light); }
+
+        /* card */
+        .rv-card {
+            background: #fff;
+            border-radius: var(--rv-radius);
+            border: 1px solid var(--rv-border);
+            padding: 28px;
+            margin-bottom: 16px;
+        }
+        .rv-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--rv-text);
+            margin: 0 0 20px;
         }
 
-        .step.active 
-        {
-            opacity: 1;
+        /* inputs */
+        .rv-field { margin-bottom: 16px; }
+        .rv-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--rv-secondary);
+            margin-bottom: 7px;
         }
-
-        .step.finish 
-        {
-            background-color: #4CAF50;
+        .rv-input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1.5px solid var(--rv-border);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--rv-text);
+            background: #fff;
+            outline: none;
+            transition: border-color .15s;
+            box-sizing: border-box;
         }
+        .rv-input:focus { border-color: var(--rv-accent); }
+        .rv-row { display: flex; gap: 14px; }
+        .rv-row .rv-field { flex: 1; }
 
-        .error_div
-        {
-            padding: 15px;
-            margin-top: 20px;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
+        /* availability result */
+        .rv-avail-ok {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px;
+            background: #E6F9F0;
+            border-radius: 10px;
+            color: #1A8A4A;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .rv-avail-ok span { font-size: 22px; }
+        .rv-avail-err {
+            padding: 18px;
+            background: #FFF0F0;
+            border-radius: 10px;
+            color: #C0392B;
+            font-size: 14px;
             text-align: center;
         }
 
-        .success_div
-        {
-            padding: 15px;
-            margin-top: 20px;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 4px;
-        }
-
-        .confirmation_info
-        {
-            background: white;
-            padding: 20px;
-            border-radius: 4px;
-            margin: 20px 0;
-            box-shadow: 0 0 5px 0 rgba(60, 66, 87, 0.04);
-        }
-
-        .confirmation_row
-        {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+        /* confirm rows */
+        .rv-confirm-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid var(--rv-border);
+            font-size: 14px;
         }
+        .rv-confirm-row:last-child { border-bottom: none; }
+        .rv-confirm-label { color: var(--rv-secondary); }
+        .rv-confirm-value { font-weight: 600; color: var(--rv-text); }
 
-        .confirmation_row:last-child
-        {
-            border-bottom: none;
+        /* buttons */
+        .rv-btn-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 8px;
         }
+        .rv-btn {
+            padding: 13px 28px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+        .rv-btn:hover { opacity: .88; }
+        .rv-btn-back { background: #F2F2F2; color: var(--rv-text); }
+        .rv-btn-next { background: var(--rv-accent); color: #fff; }
 
-        .confirmation_label
-        {
-            font-weight: bold;
-            color: #666;
-        }
+        /* reservation tab hidden by default */
+        .reservation_tab { display: none; }
 
-        .confirmation_value
-        {
-            color: #333;
+        /* success card */
+        .rv-success {
+            background: #fff;
+            border-radius: var(--rv-radius);
+            border: 1px solid var(--rv-border);
+            padding: 32px 28px;
         }
+        .rv-success-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .rv-success-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--rv-accent-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            color: var(--rv-accent);
+        }
+        .rv-success-title { font-size: 19px; font-weight: 800; color: var(--rv-text); margin: 0 0 3px; }
+        .rv-success-sub { font-size: 13px; color: var(--rv-secondary); margin: 0; }
     </style>
 
-    <!-- START ORDER FOOD SECTION -->
-
-    <section style="
-    background: url(Design/images/food_pic.jpg);
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    background-size: cover;">
-        <div class="layer">
-            <div style="text-align: center;padding: 15px;">
-                <h1 style="font-size: 120px; color: white;font-family: 'Roboto'; font-weight: 100;
-">ЗАБРОНИРОВАТЬ СТОЛИК</h1>
-            </div>
+    <div class="rv-hero">
+        <div class="rv-hero-inner">
+            <h1>Забронировать столик</h1>
+            <p>Выберите дату, время и укажите свои данные</p>
         </div>
-        
-    </section>
+    </div>
 
-	<section class="table_reservation_section">
+    <section class="rv-wrap">
+        <div class="rv-steps" id="rv_steps">
+            <div class="rv-step active" id="rvs0"><div class="rv-step-dot">1</div><div class="rv-step-label">Дата</div></div>
+            <div class="rv-step-line"></div>
+            <div class="rv-step" id="rvs1"><div class="rv-step-dot">2</div><div class="rv-step-label">Доступность</div></div>
+            <div class="rv-step-line"></div>
+            <div class="rv-step" id="rvs2"><div class="rv-step-dot">3</div><div class="rv-step-label">Данные</div></div>
+            <div class="rv-step-line"></div>
+            <div class="rv-step" id="rvs3"><div class="rv-step-dot">4</div><div class="rv-step-label">Подтверждение</div></div>
+        </div>
 
-        <div class="container">
+        <div>
             <?php
 
             if(isset($_POST['submit_table_reservation_form']) && $_SERVER['REQUEST_METHOD'] === 'POST')
@@ -216,157 +307,95 @@
             }
             ?>
 
-            <form method="POST" id="reservation_form" action="table-reservation.php">
+        <form method="POST" id="reservation_form" action="table-reservation.php">
 
-                <!-- TAB 1: SELECT DATE AND TIME -->
-
-                <div class="reservation_tab" id="tab_datetime">
-                    <div class="text_header">
-                        <span>1. Выберите дату и время</span>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: 4px;">
-                        <div class="row">
-                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                <div class="form-group">
-                                    <label for="reservation_date">Дата</label>
-                                    <input type="date" id="reservation_date" name="reservation_date" 
-                                    min="<?php echo date('Y-m-d',strtotime("+1day")); ?>"
-                                    value="<?php echo date('Y-m-d',strtotime("+1day")); ?>"
-                                    class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                <div class="form-group">
-                                    <label for="reservation_time">Время</label>
-                                    <input type="time" id="reservation_time" name="reservation_time" 
-                                    value="<?php echo date('H:i'); ?>" 
-                                    class="form-control" required>
-                                </div>
-                            </div>
+            <!-- TAB 1: DATE & TIME -->
+            <div class="reservation_tab" id="tab_datetime">
+                <div class="rv-card">
+                    <div class="rv-card-title">Выберите дату и время</div>
+                    <div class="rv-row">
+                        <div class="rv-field">
+                            <label class="rv-label">Дата</label>
+                            <input type="date" id="reservation_date" name="reservation_date"
+                                min="<?php echo date('Y-m-d',strtotime("+1day")); ?>"
+                                value="<?php echo date('Y-m-d',strtotime("+1day")); ?>"
+                                class="rv-input" required>
                         </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="number_of_guests">Сколько человек?</label>
-                                    <select class="form-control" id="number_of_guests" name="number_of_guests" required>
-                                        <option value="">-- Выберите количество --</option>
-                                        <option value="1">1 человек</option>
-                                        <option value="2">2 человека</option>
-                                        <option value="3">3 человека</option>
-                                        <option value="4">4 человека</option>
-                                        <option value="5">5 человек</option>
-                                        <option value="6">6 человек</option>
-                                        <option value="7">7 человек</option>
-                                        <option value="8">8 человек</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <div class="rv-field">
+                            <label class="rv-label">Время</label>
+                            <input type="time" id="reservation_time" name="reservation_time"
+                                value="<?php echo date('H:i'); ?>"
+                                class="rv-input" required>
+                        </div>
+                    </div>
+                    <div class="rv-field">
+                        <label class="rv-label">Количество человек</label>
+                        <select class="rv-input" id="number_of_guests" name="number_of_guests" required>
+                            <option value="">— Выберите —</option>
+                            <?php foreach([1,2,3,4,5,6,7,8] as $n): ?>
+                            <option value="<?= $n ?>"><?= $n ?> <?= $n==1?'человек':($n<5?'человека':'человек') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: AVAILABILITY -->
+            <div class="reservation_tab" id="tab_availability">
+                <div class="rv-card">
+                    <div class="rv-card-title">Проверка доступности</div>
+                    <div id="availability_content" style="color:#999;text-align:center;padding:10px 0;">Нажмите «Далее» для проверки</div>
+                </div>
+                <input type="hidden" id="selected_date" name="selected_date" value="">
+                <input type="hidden" id="selected_time" name="selected_time" value="">
+                <input type="hidden" id="table_id" name="table_id" value="">
+            </div>
+
+            <!-- TAB 3: CLIENT DETAILS -->
+            <div class="reservation_tab" id="tab_client">
+                <div class="rv-card">
+                    <div class="rv-card-title">Ваши данные</div>
+                    <div class="rv-field">
+                        <label class="rv-label">Полное имя</label>
+                        <input type="text" name="client_full_name" id="client_full_name"
+                            class="rv-input" placeholder="Иван Иванов" required>
+                    </div>
+                    <div class="rv-row">
+                        <div class="rv-field">
+                            <label class="rv-label">Email</label>
+                            <input type="email" name="client_email" id="client_email"
+                                class="rv-input" placeholder="mail@example.com" required>
+                        </div>
+                        <div class="rv-field">
+                            <label class="rv-label">Телефон</label>
+                            <input type="text" name="client_phone_number" id="client_phone_number"
+                                class="rv-input" placeholder="89001234567"
+                                onkeyup="this.value=this.value.replace(/[^0-9]/g,'');" required>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- TAB 2: CHECK AVAILABILITY AND SELECT TABLE -->
-
-                <div class="reservation_tab" id="tab_availability">
-                    <div class="text_header">
-                        <span>2. Проверка доступности</span>
-                    </div>
-                    <div id="availability_content" style="background: white; padding: 20px; border-radius: 4px;">
-                        <p style="text-align: center; color: #999;">Нажмите "Далее" для проверки доступности</p>
-                    </div>
-                    <input type="hidden" id="selected_date" name="selected_date" value="">
-                    <input type="hidden" id="selected_time" name="selected_time" value="">
-                    <input type="hidden" id="table_id" name="table_id" value="">
+            <!-- TAB 4: CONFIRMATION -->
+            <div class="reservation_tab" id="tab_confirmation">
+                <div class="rv-card">
+                    <div class="rv-card-title">Подтверждение бронирования</div>
+                    <div class="rv-confirm-row"><span class="rv-confirm-label">Дата и время</span><span class="rv-confirm-value" id="confirm_datetime">—</span></div>
+                    <div class="rv-confirm-row"><span class="rv-confirm-label">Гостей</span><span class="rv-confirm-value" id="confirm_guests">—</span></div>
+                    <div class="rv-confirm-row"><span class="rv-confirm-label">Имя</span><span class="rv-confirm-value" id="confirm_name">—</span></div>
+                    <div class="rv-confirm-row"><span class="rv-confirm-label">Email</span><span class="rv-confirm-value" id="confirm_email">—</span></div>
+                    <div class="rv-confirm-row"><span class="rv-confirm-label">Телефон</span><span class="rv-confirm-value" id="confirm_phone">—</span></div>
                 </div>
+            </div>
 
-                <!-- TAB 3: CLIENT DETAILS -->
+            <!-- NAV BUTTONS -->
+            <div class="rv-btn-row">
+                <input type="hidden" name="submit_table_reservation_form">
+                <button type="button" class="rv-btn rv-btn-back" id="prevBtn" onclick="changeTab(-1)" style="display:none;">Назад</button>
+                <button type="button" class="rv-btn rv-btn-next" id="nextBtn" onclick="changeTab(1)">Далее</button>
+            </div>
 
-                <div class="reservation_tab" id="tab_client">
-                    <div class="text_header">
-                        <span>3. Ваши данные</span>
-                    </div>
-                    <div class="client_details_tab" style="background: white; padding: 20px; border-radius: 4px;">
-                        <div class="form-group colum-row row">
-                            <div class="col-sm-12">
-                                <input type="text" name="client_full_name" id="client_full_name" 
-                                oninput="document.getElementById('required_fname').style.display = 'none'" 
-                                onkeyup="this.value=this.value.replace(/[^\sa-zA-Zа-яА-ЯёЁ]/g,'');" 
-                                class="form-control" placeholder="Полное имя" required>
-                                <div class="invalid-feedback" id="required_fname" style="display:none;">
-                                    Неверное имя!
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-sm-6">
-                                <input type="email" name="client_email" id="client_email" 
-                                oninput="document.getElementById('required_email').style.display = 'none'" 
-                                class="form-control" placeholder="Email" required>
-                                <div class="invalid-feedback" id="required_email" style="display:none;">
-                                    Неверный Email!
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <input type="text" name="client_phone_number" id="client_phone_number" 
-                                oninput="document.getElementById('required_phone').style.display = 'none'" 
-                                class="form-control" onkeyup="this.value=this.value.replace(/[^0-9]/g,'');" 
-                                placeholder="Номер телефона" required>
-                                <div class="invalid-feedback" id="required_phone" style="display:none;">
-                                    Неверный номер телефона!
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: CONFIRMATION -->
-
-                <div class="reservation_tab" id="tab_confirmation">
-                    <div class="text_header">
-                        <span>4. Подтверждение</span>
-                    </div>
-                    <div class="confirmation_info">
-                        <div class="confirmation_row">
-                            <span class="confirmation_label">Дата и время:</span>
-                            <span class="confirmation_value" id="confirm_datetime">--</span>
-                        </div>
-                        <div class="confirmation_row">
-                            <span class="confirmation_label">Количество человек:</span>
-                            <span class="confirmation_value" id="confirm_guests">--</span>
-                        </div>
-                        <div class="confirmation_row">
-                            <span class="confirmation_label">Имя:</span>
-                            <span class="confirmation_value" id="confirm_name">--</span>
-                        </div>
-                        <div class="confirmation_row">
-                            <span class="confirmation_label">Email:</span>
-                            <span class="confirmation_value" id="confirm_email">--</span>
-                        </div>
-                        <div class="confirmation_row">
-                            <span class="confirmation_label">Телефон:</span>
-                            <span class="confirmation_value" id="confirm_phone">--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NAVIGATION BUTTONS -->
-
-                <div style="overflow:auto;padding: 30px;">
-                    <div style="float:right;">
-                        <input type="hidden" name="submit_table_reservation_form">
-                        <button type="button" class="next_prev_buttons" style="background-color: #bbbbbb;" id="prevBtn" onclick="changeTab(-1)">Назад</button>
-                        <button type="button" id="nextBtn" class="next_prev_buttons" onclick="changeTab(1)">Далее</button>
-                    </div>
-                </div>
-
-                <div style="text-align:center;margin-top:40px;">
-                    <span class="step"></span>
-                    <span class="step"></span>
-                    <span class="step"></span>
-                    <span class="step"></span>
-                </div>
-
-            </form>
+        </form>
 
         </div>
     </section>
