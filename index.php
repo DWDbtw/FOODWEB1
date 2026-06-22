@@ -256,7 +256,7 @@ $catName = strtolower($row['category_name']);
                                                                         <p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
                                                                         <div class="card-footer-row">
                                                                                 <span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.',' ')."₽"; ?></span>
-                                                                                <button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">В корзину</button>
+                                                                                <button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">🛒</button>
                                                                         </div>
                                                                 </div>
                                                                                                 </div>
