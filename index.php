@@ -71,7 +71,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
                                                 </h2>
                                                 <hr>
                                                 <p>
-                                                        Японская кухня с свежай рыбой и овощами
+                                                        Японская кухня с свежой рыбой и овощами
                                                 </p>
                                                 <div style="display: flex;">
                                                         <a href="table-reservation.php" class="bttn_style_1" style="margin-right: 10px; display: flex;justify-content: center;align-items: center;">
