@@ -234,7 +234,7 @@ $catName = strtolower($row['category_name']);
 									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
 									<div class="card-footer-row">
 										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.','Â ')."₽"; ?></span>
-										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">В корзину</button>
+										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">🛒</button>
 									</div>
 								</div>
 												</div>
@@ -304,7 +304,7 @@ $catName = strtolower($row['category_name']);
 									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
 									<div class="card-footer-row">
 										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.',' ')."₽"; ?></span>
-										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">В корзину</button>
+										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">🛒</button>
 									</div>
 								</div>
 																				</div>
@@ -793,7 +793,7 @@ if($.trim(contact_name) == "")
 				<div class="pm-desc" id="pm_desc"></div>
 				<div class="pm-price-row">
 					<div class="pm-price" id="pm_price"></div>
-					<button class="pm-cart-btn" id="pm_cart_btn">В корзину</button>
+					<button class="pm-cart-btn" id="pm_cart_btn">🛒</button>
 				</div>
 			</div>
 		</div>
