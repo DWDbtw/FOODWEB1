@@ -476,16 +476,22 @@ ul.nav>li>a:hover
 
 /* product modal */
 #productModal {
-    display: none;
     position: fixed;
     inset: 0;
     z-index: 9999;
     background: rgba(0,0,0,.7);
     backdrop-filter: blur(4px);
+    display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
 }
-#productModal.open { display: flex; }
+#productModal.open {
+    opacity: 1;
+    pointer-events: all;
+}
 .pm-dialog {
     background: #1C1F22;
     border-radius: 18px;
