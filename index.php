@@ -1,942 +1,525 @@
 <?php
-    session_start();
-    include "connect.php";
-    include 'Includes/functions/functions.php';
-    include "Includes/templates/header.php";
-    include "Includes/templates/navbar.php";
+session_start();
+require_once 'Includes/db_connect.php';
 
-
-    //Getting website settings
-
-    $stmt_web_settings = $con->prepare("SELECT * FROM website_settings");
-    $stmt_web_settings->execute();
-    $web_settings = $stmt_web_settings->fetchAll();
-
-    $restaurant_name = "";
-    $restaurant_email = "";
-    $restaurant_address = "";
-    $restaurant_phonenumber = "";
-
-    foreach ($web_settings as $option)
-    {
-        if($option['option_name'] == 'restaurant_name')
-        {
-            $restaurant_name = $option['option_value'];
-        }
-
-        elseif($option['option_name'] == 'restaurant_email')
-        {
-            $restaurant_email = $option['option_value'];
-        }
-
-        elseif($option['option_name'] == 'restaurant_phonenumber')
-        {
-            $restaurant_phonenumber = $option['option_value'];
-        }
-        elseif($option['option_name'] == 'restaurant_address')
-        {
-            $restaurant_address = $option['option_value'];
-        }
-    }
-
+// Получаем товары из БД
+$query = "SELECT * FROM menu_items WHERE is_available = true ORDER BY category, name";
+$result = pg_query($conn, $query);
+$items = pg_fetch_all($result);
 ?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Суши-меню</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
 
-<?php
-// Determine if current user is manager or admin for showing add-tile
-$is_manager_or_admin = false;
-if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-	try {
-		$stmtRole = $con->prepare("SELECT role FROM users WHERE user_id = ? LIMIT 1");
-		$stmtRole->execute([ (int)$_SESSION['user_id'] ]);
-		$r = $stmtRole->fetch(PDO::FETCH_ASSOC);
-		if ($r && in_array($r['role'], ['admin','manager'])) $is_manager_or_admin = true;
-	} catch (Exception $e) {
-		$is_manager_or_admin = false;
-	}
-}
-?>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-	<!-- HOME SECTION -->
+        /* Навигация */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
 
-	<section class="home-section" id="home">
-		<div class="container">
-			<div class="row" style="flex-wrap: nowrap;">
-				<div class="col-md-6 home-left-section">
-					<div style="padding: 100px 0px; color: white;">
-<h1>
-							VINCENT SUSHI.
-						</h1>
-						<h2>
-							ДЕЛАЕМ ЛЮДЕЙ СЧАСТЛИВЫМИ
-						</h2>
-						<hr>
-						<p>
-							Японская кухня с свежай рыбой и овощами
-						</p>
-						<div style="display: flex;">
-							<a href="table-reservation.php" class="bttn_style_1" style="margin-right: 10px; display: flex;justify-content: center;align-items: center;">
-								ЗАБРОНИРОВАТЬ СТОЛИК
-								<i class="fas fa-angle-right"></i>
-							</a>
-							<a href="#menus" class="bttn_style_2" style="display: flex;justify-content: center;align-items: center;">
-								ПОСМОТРЕТЬ МЕНЮ
-								<i class="fas fa-angle-right"></i>
-							</a>
-						</div>
-					</div>
-				</div>
-				
-			</div>
-		</div>
-	</section>
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
 
-	<!-- OUR QUALITIES SECTION -->
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
 
-	<section class="our_qualities" style="padding:100px 0px;">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-4">
-					<div class="our_qualities_column">
-	                    <img src="Design/images/quality_food_img.png" >
-	                    <div class="caption">
-	                        <h3>
-	                            КАЧЕСТВЕННАЯ ЕДА
-	                        </h3>
-<p>
-                    		Свежие ингредиенты и высокое качество
-                    	</p>
-	                    </div>
-	                </div>
-				</div>
-				<div class="col-md-4">
-					<div class="our_qualities_column">
-	                    <img src="Design/images/fast_delivery_img.png" >
-	                    <div class="caption">
-	                        <h3>
-	                            БЫСТРАЯ ДОСТАВКА
-	                        </h3>
-<p>
-                    		Свежие ингредиенты и высокое качество
-                    	</p>
-	                    </div>
-	                </div>
-				</div>
-				<div class="col-md-4">
-					<div class="our_qualities_column">
-	                    <img src="Design/images/original_taste_img.png" >
-	                    <div class="caption">
-	                        <h3>
-	                            ОРИГИНАЛЬНЫЙ ВКУС
-	                        </h3>
-<p>
-                    		Свежие ингредиенты и высокое качество
-                    	</p>
-	                    </div>
-	                </div>
-				</div>
+        .nav-links a:hover {
+            color: #fff;
+        }
 
-			</div>
-		</div>
-	</section>
+        .nav-links a.active {
+            color: #fff;
+        }
 
-	<!-- OUR MENUS SECTION -->
+        .cart-icon-wrapper {
+            position: relative;
+            display: inline-block;
+        }
 
-	<section class="our_menus" id="menus">
-		<div class="container">
-			<h2 style="text-align: center;margin-bottom: 30px">МЕНЮ СУШИ</h2>
-			<div class="menus_tabs">
-				<div class="menus_tabs_picker">
-					<ul style="text-align: center;margin-bottom: 70px">
-						<?php
+        /* Новая круглая кнопка корзины */
+        .cart-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 20px;
+        }
 
-	                        $stmt = $con->prepare("Select * from menu_categories");
-	                        $stmt->execute();
-	                        $rows = $stmt->fetchAll();
-	                        $count = $stmt->rowCount();
+        .cart-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
 
-	                        $x = 0;
+        .cart-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
-foreach($rows as $row)
-	{
-		$catName = strtolower($row['category_name']);
-		if(in_array($catName, ['salads', 'салаты', 'burgers', 'бургеры', 'pizzas', 'пиццы', 'pizza', 'пицца', 'traditional food', 'traditional', 'традиционные блюда', 'традиционные'])) continue;
-		if($x == 0)
-	                        	{
-	                        		echo "<li class = 'menu_category_name tab_category_links active_category' onclick=showCategoryMenus(event,'".str_replace(' ', '', $row['category_name'])."')>";
-	                        			echo $row['category_name'];
-	                        		echo "</li>";
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
-	                        	}
-	                        	else
-	                        	{
-	                        		echo "<li class = 'menu_category_name tab_category_links' onclick=showCategoryMenus(event,'".str_replace(' ', '', $row['category_name'])."')>";
-	                        			echo $row['category_name'];
-	                        		echo "</li>";
-	                        	}
+        /* Меню товаров */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 30px 0;
+        }
 
-	                        	$x++;
-	                     		
-	                        }
-						?>
-					</ul>
-				</div>
+        .menu-item {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
 
-				<div class="menus_tab">
-					<?php
-                
-                        $stmt = $con->prepare("Select * from menu_categories");
-                        $stmt->execute();
-                        $rows = $stmt->fetchAll();
-                        $count = $stmt->rowCount();
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
 
-$i = 0;
+        .menu-item-image {
+            width: 100%;
+            height: 200px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
 
-                         foreach($rows as $row) 
-                         {
-$catName = strtolower($row['category_name']);
-                         	if(in_array($catName, ['salads', 'салаты', 'burgers', 'бургеры', 'pizzas', 'пиццы', 'pizza', 'пицца', 'traditional food', 'traditional', 'традиционные блюда', 'традиционные'])) continue;
-                         	if($i == 0)
-                            {
+        .menu-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-                                echo '<div class="menu_item  tab_category_content" id="'.str_replace(' ', '', $row['category_name']).'" style=display:block>';
+        .menu-item-content {
+            padding: 18px;
+        }
 
-                                    $stmt_menus = $con->prepare("Select * from menus where category_id = ?");
-                                    $stmt_menus->execute(array($row['category_id']));
-                                    $rows_menus = $stmt_menus->fetchAll();
+        .menu-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
 
-									if($stmt_menus->rowCount() == 0)
-									{
-										echo "<div style='margin:auto'>В этой категории нет доступных меню!</div>";
-									}
+        .menu-item-description {
+            font-size: 14px;
+            color: #999;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
-									echo "<div class='row'>";
-									foreach($rows_menus as $menu)
-									{
-										?>
+        .menu-item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-<div class="col-md-4 col-lg-3 menu-column">
-												<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
-												<div class="thumbnail menu-item" style="cursor:pointer" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
+        .menu-item-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
 
-													<div class="menu-image">
-														<div class="image-preview">
-															<div style="background-image: url('<?php echo $source; ?>');"></div>
-														</div>
-													</div>
-                                                        
-								<div class="caption">
-									<h5 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-										<span class="menu-name"><?php echo htmlspecialchars($menu['menu_name']); ?></span>
-										<?php if ($is_manager_or_admin) { ?>
-											<button type="button" class="quick-edit" title="Редактировать" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-										<?php } ?>
-									</h5>
-									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
-									<div class="card-footer-row">
-										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.','Â ')."₽"; ?></span>
-										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">🛒</button>
-									</div>
-								</div>
-												</div>
-											</div>
+        .menu-item-price span {
+            font-size: 14px;
+            font-weight: 400;
+            color: #888;
+        }
 
-										<?php
-									}
+        .add-to-cart-btn {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
 
-									// Add-tile for manager/admin: show a circular plus tile to add a new menu item
-									if ($is_manager_or_admin) {
-										?>
-										<div class="col-md-4 col-lg-3 menu-column">
-											<div class="thumbnail add-tile" style="cursor:pointer" data-category-id="<?php echo $row['category_id']; ?>">
-												<div class="menu-image">
-													<div class="image-preview">
-														<div class="add-tile-inner">
-															<span class="add-tile-plus">+</span>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-										<?php
-									}
+        .add-to-cart-btn:hover {
+            background: #e55a2b;
+        }
 
-								echo "</div>";
-                                echo '</div>';
+        /* Модальное окно для товара */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-                            }
+        .modal.active {
+            display: flex;
+        }
 
-                            else
-                            {
+        .modal-content {
+            background: #2a2a2a;
+            border-radius: 20px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
 
-                                echo '<div class="menus_categories  tab_category_content" id="'.str_replace(' ', '', $row['category_name']).'">';
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.3s;
+        }
 
-                                    $stmt_menus = $con->prepare("Select * from menus where category_id = ?");
-                                    $stmt_menus->execute(array($row['category_id']));
-                                    $rows_menus = $stmt_menus->fetchAll();
+        .modal-close:hover {
+            color: #fff;
+        }
 
-                                    if($stmt_menus->rowCount() == 0)
-                                    {
-                                        echo "<div class = 'no_menus_div'>В этой категории нет доступных меню!</div>";
-                                    }
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            background: #333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: #666;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
 
-																	echo "<div class='row'>";
-																	foreach($rows_menus as $menu)
-																	{
-																		?>
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-								<div class="col-md-4 col-lg-3 menu-column">
-																				<?php $source = "admin/Uploads/images/".$menu['menu_image']; ?>
-																				<div class="thumbnail menu-item" style="cursor:pointer" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>">
+        .modal-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
 
-																					<div class="menu-image">
-																						<div class="image-preview">
-																							<div style="background-image: url('<?php echo $source; ?>');"></div>
-																						</div>
-																					</div>
-                                                        
-																													<div class="caption">
-									<h5 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-										<span class="menu-name-text"><?php echo htmlspecialchars($menu['menu_name']); ?></span>
-										<?php if ($is_manager_or_admin) { ?>
-											<span class="edit-pencil" data-menu-id="<?php echo $menu['menu_id']; ?>" data-menu-name="<?php echo htmlspecialchars($menu['menu_name'], ENT_QUOTES); ?>" data-menu-price="<?php echo $menu['menu_price']; ?>" data-menu-desc="<?php echo htmlspecialchars($menu['menu_description'], ENT_QUOTES); ?>" data-menu-img="<?php echo $source; ?>" data-category-id="<?php echo $menu['category_id']; ?>" style="cursor:pointer;opacity:0.85;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>
-										<?php } ?>
-									</h5>
-									<p><?php echo htmlspecialchars($menu['menu_description']); ?></p>
-									<div class="card-footer-row">
-										<span class="menu_price"><?php echo number_format($menu['menu_price'],0,'.',' ')."₽"; ?></span>
-										<button type="button" class="cart-btn" onclick="event.stopPropagation();addToCartBtn(this,<?php echo $menu['menu_id']; ?>,'<?php echo htmlspecialchars($menu['menu_name'],ENT_QUOTES); ?>')">🛒</button>
-									</div>
-								</div>
-																				</div>
-																			</div>
+        .modal-description {
+            font-size: 16px;
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
 
-																		<?php
-																		}
-																		// add-tile for manager/admin in this category
-																		if ($is_manager_or_admin) {
-																			?>
-																			<div class="col-md-4 col-lg-3 menu-column">
-																				<div class="thumbnail add-tile" style="cursor:pointer" data-category-id="<?php echo $row['category_id']; ?>">
-																					<div class="menu-image">
-																						<div class="image-preview">
-																							<div class="add-tile-inner">
-																								<span class="add-tile-plus">+</span>
-																							</div>
-																						</div>
-																					</div>
-																				</div>
-																			</div>
-																			<?php
-																		}
-																		echo "</div>";
+        .modal-nutrition {
+            background: #333;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
 
-                                echo '</div>';
+        .modal-nutrition h4 {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
 
-                            }
+        .modal-nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
 
-                            $i++;
-                            
-                        }
+        .modal-nutrition-item {
+            text-align: center;
+        }
+
+        .modal-nutrition-item .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .modal-nutrition-item .label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .modal-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin: 15px 0;
+        }
+
+        .modal-add-btn {
+            width: 100%;
+            padding: 14px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .modal-add-btn:hover {
+            background: #e55a2b;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .modal-image {
+                height: 200px;
+            }
+            
+            .modal-nutrition-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Навигация -->
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#" class="active">СУШИ</a></li>
+                <li><a href="#">РОЛЛЫ</a></li>
+                <li><a href="#">НАПИТКИ</a></li>
+                <li><a href="#">ДЕСЕРТЫ</a></li>
+            </ul>
+            
+            <!-- Новая круглая кнопка корзины -->
+            <div class="cart-icon-wrapper">
+                <button class="cart-btn" onclick="window.location.href='cart.php'" aria-label="Корзина">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="9" cy="21" r="1" fill="#fff"/>
+                        <circle cx="20" cy="21" r="1" fill="#fff"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Сетка товаров -->
+        <div class="menu-grid" id="menuGrid">
+            <?php if ($items): ?>
+                <?php foreach ($items as $item): ?>
+                    <div class="menu-item" data-id="<?= $item['id'] ?>" onclick="openModal(<?= $item['id'] ?>)">
+                        <div class="menu-item-image">
+                            <?php if ($item['image_url']): ?>
+                                <img src="<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
+                            <?php else: ?>
+                                🍣
+                            <?php endif; ?>
+                        </div>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title"><?= htmlspecialchars($item['name']) ?></div>
+                            <div class="menu-item-description"><?= htmlspecialchars($item['description']) ?></div>
+                            <div class="menu-item-footer">
+                                <div class="menu-item-price"><?= $item['price'] ?> <span>₽</span></div>
+                                <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(<?= $item['id'] ?>)">В корзину</button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="modal-image" id="modalImage">🍣</div>
+            <h2 class="modal-title" id="modalTitle">Название</h2>
+            <p class="modal-description" id="modalDescription">Описание</p>
+            
+            <div class="modal-nutrition">
+                <h4>Пищевая ценность на 100 г</h4>
+                <div class="modal-nutrition-grid">
+                    <div class="modal-nutrition-item">
+                        <div class="value" id="modalProtein">0 г</div>
+                        <div class="label">Белки</div>
+                    </div>
+                    <div class="modal-nutrition-item">
+                        <div class="value" id="modalFat">0 г</div>
+                        <div class="label">Жиры</div>
+                    </div>
+                    <div class="modal-nutrition-item">
+                        <div class="value" id="modalCarbs">0 г</div>
+                        <div class="label">Углеводы</div>
+                    </div>
+                    <div class="modal-nutrition-item">
+                        <div class="value" id="modalCalories">0 ккал</div>
+                        <div class="label">Калории</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-price" id="modalPrice">0 ₽</div>
+            <button class="modal-add-btn" onclick="addToCartFromModal()">В корзину</button>
+        </div>
+    </div>
+
+    <script>
+        let currentItemId = null;
+
+        function openModal(id) {
+            currentItemId = id;
+            fetch(`get_item.php?id=${id}`)
+                .then(res => res.json())
+                .then(item => {
+                    document.getElementById('modalTitle').textContent = item.name;
+                    document.getElementById('modalDescription').textContent = item.description;
+                    document.getElementById('modalPrice').textContent = item.price + ' ₽';
                     
-                        echo "</div>";
-                
-                    ?>
-				</div>
-			</div>
-		</div>
-	</section>
+                    const imageEl = document.getElementById('modalImage');
+                    if (item.image_url) {
+                        imageEl.innerHTML = `<img src="${item.image_url}" alt="${item.name}">`;
+                    } else {
+                        imageEl.innerHTML = '🍣';
+                    }
+                    
+                    document.getElementById('modalProtein').textContent = (item.protein || 0) + ' г';
+                    document.getElementById('modalFat').textContent = (item.fat || 0) + ' г';
+                    document.getElementById('modalCarbs').textContent = (item.carbs || 0) + ' г';
+                    document.getElementById('modalCalories').textContent = (item.calories || 0) + ' ккал';
+                    
+                    document.getElementById('itemModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+        }
 
-  	<!-- FOOTER BOTTOM  -->
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
 
-		<!-- Quick Add Modal (manager/admin) -->
-		<?php if ($is_manager_or_admin): ?>
-		<style>
-		/* add-tile: круг совпадает по размерам с .image-preview обычных карточек */
-		.add-tile .image-preview > div.add-tile-inner {
-			width: 100%;
-			height: 100%;
-			border-radius: 50%;
-			background: rgba(255,255,255,0.07);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-		.add-tile-plus {
-			font-size: 90px;
-			line-height: 1;
-			color: rgba(255,255,255,0.35);
-			font-weight: 200;
-			user-select: none;
-			margin-top: -6px;
-		}
-		.add-tile:hover .add-tile-inner {
-			background: rgba(255,255,255,0.13);
-		}
-		.add-tile:hover .add-tile-plus {
-			color: rgba(255,255,255,0.6);
-		}
-		/* Minimalist pencil edit button */
-		.quick-edit, .edit-pencil {
-			background: none !important;
-			border: none !important;
-			box-shadow: none !important;
-			padding: 2px !important;
-			margin: 0 !important;
-			color: rgba(255,255,255,0.45) !important;
-			cursor: pointer;
-			display: inline-flex;
-			align-items: center;
-			transition: color 0.2s;
-			flex-shrink: 0;
-		}
-		.quick-edit:hover, .edit-pencil:hover {
-			color: rgba(255,255,255,0.9) !important;
-		}
-		.quick-edit svg, .edit-pencil svg {
-			display: block;
-		}
-		</style>
+        function addToCart(id) {
+            fetch('add_to_cart.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `item_id=${id}&quantity=1`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartCount();
+                }
+            });
+        }
 
-		<style>
-		#addMenuModal .modal-dialog { max-width: 420px; }
-		#addMenuModal .modal-content {
-			background: #1a1a1a;
-			border: 0.5px solid rgba(255,255,255,0.12);
-			border-radius: 12px;
-			overflow: hidden;
-			box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-		}
-		#addMenuModal .modal-header {
-			background: transparent;
-			border-bottom: 0.5px solid rgba(255,255,255,0.08);
-			padding: 1.1rem 1.4rem 1rem;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-		}
-		#addMenuModal .modal-title {
-			font-size: 13px;
-			font-weight: 500;
-			color: #e8e2d4;
-			letter-spacing: 0.1em;
-			text-transform: uppercase;
-			margin: 0;
-		}
-		#addMenuModal .close {
-			color: rgba(255,255,255,0.35);
-			opacity: 1;
-			text-shadow: none;
-			font-size: 20px;
-			transition: color 0.15s;
-		}
-		#addMenuModal .close:hover { color: rgba(255,255,255,0.75); }
-		#addMenuModal .modal-body {
-			padding: 1.25rem 1.4rem;
-			background: transparent;
-		}
-		#addMenuModal .form-group { margin-bottom: 1.1rem; }
-		#addMenuModal .form-group label {
-			display: block;
-			font-size: 10px;
-			font-weight: 500;
-			letter-spacing: 0.12em;
-			text-transform: uppercase;
-			color: rgba(255,255,255,0.35);
-			margin-bottom: 7px;
-		}
-		#addMenuModal .form-control {
-			background: rgba(255,255,255,0.05) !important;
-			border: 0.5px solid rgba(255,255,255,0.12) !important;
-			border-radius: 8px !important;
-			color: #e8e2d4 !important;
-			font-size: 14px;
-			padding: 9px 12px;
-			transition: border-color 0.15s;
-			box-shadow: none !important;
-		}
-		#addMenuModal .form-control:focus {
-			border-color: rgba(185,155,90,0.55) !important;
-			background: rgba(255,255,255,0.07) !important;
-		}
-		#addMenuModal .form-control::placeholder { color: rgba(255,255,255,0.2); }
-		#addMenuModal textarea.form-control {
-			height: 80px;
-			resize: none;
-			line-height: 1.55;
-		}
-		#addMenuModal .price-wrap {
-			display: flex;
-			align-items: center;
-			background: rgba(255,255,255,0.05);
-			border: 0.5px solid rgba(255,255,255,0.12);
-			border-radius: 8px;
-			overflow: hidden;
-			transition: border-color 0.15s;
-		}
-		#addMenuModal .price-wrap:focus-within { border-color: rgba(185,155,90,0.55); }
-		#addMenuModal .price-wrap input {
-			background: none !important;
-			border: none !important;
-			border-radius: 0 !important;
-			flex: 1;
-			color: #e8e2d4 !important;
-			font-size: 14px;
-			padding: 9px 12px;
-			outline: none;
-			box-shadow: none !important;
-		}
-		#addMenuModal .price-symbol {
-			padding: 0 14px 0 0;
-			font-size: 14px;
-			color: rgba(185,155,90,0.7);
-			font-weight: 500;
-		}
-		#addMenuModal .file-row {
-			display: flex;
-			align-items: center;
-			gap: 10px;
-		}
-		#addMenuModal .file-btn-label {
-			background: rgba(255,255,255,0.06);
-			border: 0.5px solid rgba(255,255,255,0.15);
-			border-radius: 8px;
-			color: rgba(255,255,255,0.6);
-			font-size: 13px;
-			padding: 8px 14px;
-			cursor: pointer;
-			white-space: nowrap;
-			transition: background 0.15s;
-			margin: 0;
-		}
-		#addMenuModal .file-btn-label:hover { background: rgba(255,255,255,0.1); }
-		#addMenuModal input[type="file"] { display: none; }
-		#addMenuModal .file-status {
-			font-size: 13px;
-			color: rgba(255,255,255,0.28);
-		}
-		#addMenuModal .modal-footer {
-			background: transparent;
-			border-top: 0.5px solid rgba(255,255,255,0.08);
-			padding: 0.9rem 1.4rem 1.2rem;
-			display: flex;
-			justify-content: flex-end;
-			gap: 10px;
-		}
-		#addMenuModal .btn-cancel-custom {
-			background: rgba(255,255,255,0.06);
-			border: 0.5px solid rgba(255,255,255,0.12);
-			border-radius: 8px;
-			color: rgba(255,255,255,0.5);
-			font-size: 13px;
-			padding: 9px 20px;
-			cursor: pointer;
-			transition: background 0.15s;
-		}
-		#addMenuModal .btn-cancel-custom:hover { background: rgba(255,255,255,0.1); }
-		#addMenuModal .btn-add-custom {
-			background: linear-gradient(135deg, #b99b5a 0%, #8a7040 100%);
-			border: none;
-			border-radius: 8px;
-			color: #1a1510;
-			font-size: 13px;
-			font-weight: 600;
-			padding: 9px 24px;
-			cursor: pointer;
-			letter-spacing: 0.04em;
-			transition: opacity 0.15s;
-		}
-		#addMenuModal .btn-add-custom:hover { opacity: 0.88; }
-		#addMenuModal .image-preview-thumb {
-			margin-top: 10px;
-			display: flex;
-			justify-content: center;
-		}
-		#addMenuModal #add_menu_imagePreview {
-			width: 80px;
-			height: 80px;
-			border-radius: 8px;
-			border: 0.5px dashed rgba(255,255,255,0.2);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			overflow: hidden;
-			background: rgba(255,255,255,0.03);
-		}
-		#addMenuModal #add_menu_imagePreview img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-		#addMenuModal #add_menu_imagePreview .plus-icon { font-size: 28px; color: rgba(255,255,255,0.2); font-weight: 200; }
-		</style>
+        function addToCartFromModal() {
+            if (currentItemId) {
+                addToCart(currentItemId);
+                closeModal();
+            }
+        }
 
-		<div class="modal fade" id="addMenuModal" tabindex="-1" role="dialog" aria-hidden="true">
-			<div class="modal-dialog modal-sm" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">Добавить позицию</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-					</div>
-					<form id="addMenuForm" enctype="multipart/form-data">
-					<div class="modal-body">
-						<div class="form-group">
-							<label>Название</label>
-							<input type="text" name="menu_name" id="menu_name" class="form-control" placeholder="Напр. Ролл Филадельфия" required />
-						</div>
-						<div class="form-group">
-					
-						<div class="form-group">
-							<label>Описание</label>
-							<textarea name="menu_description" id="menu_description" class="form-control" placeholder="Кратко опишите состав и вкус блюда..."></textarea>
-						</div>
-						<div class="form-group">
-							<label>Цена</label>
-							<div class="price-wrap">
-								<input type="text" name="menu_price" id="menu_price" placeholder="0" />
-								<span class="price-symbol">₽</span>
-							</div>
-						</div>
-						<div class="form-group">
-							<label>Фото</label>
-							<div class="file-row">
-								<label class="file-btn-label" for="menu_image">&#8593; Выбрать файл</label>
-								<input type="file" name="menu_image" id="menu_image" accept="image/*" />
-								<span class="file-status" id="file_status_text">Файл не выбран</span>
-							</div>
-							<div class="image-preview-thumb">
-								<div id="add_menu_imagePreview"><div class="plus-icon">+</div></div>
-							</div>
-						</div>
-						<input type="hidden" name="category_id" id="add_category_id" />
-						<input type="hidden" name="menu_id" id="menu_id" />
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn-cancel-custom" data-dismiss="modal">Отмена</button>
-						<button type="submit" class="btn-add-custom">Добавить</button>
-					</div>
-					</form>
-				</div>
-			</div>
-		</div>
-		<?php endif; ?>
+        function updateCartCount() {
+            fetch('get_cart_count.php')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('cartCount').textContent = data.count || 0;
+                });
+        }
 
-		<?php include "Includes/templates/footer.php"; ?>
+        // Закрытие модалки по клику вне контента
+        document.getElementById('itemModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
-    <script type="text/javascript">
-
-	    $(document).ready(function()
-	    {
-	        $('#contact_send').click(function()
-	        {
-	            var contact_name = $('#contact_name').val();
-	            var contact_email = $('#contact_email').val();
-	            var contact_subject = $('#contact_subject').val();
-	            var contact_message = $('#contact_message').val();
-
-	            var flag = 0;
-
-if($.trim(contact_name) == "")
-    	            {
-	            		$('#invalid-name').text('Это обязательное поле!');
-	            		flag = 1;
-	            	}
-	            else
-	            {
-	            	if(contact_name.length < 5)
-	            	{
-	            		$('#invalid-name').text('Длина меньше 5 символов!');
-	            		flag = 1;
-	                	}
-	            }
-
-	            if(!ValidateEmail(contact_email))
-	            {
-	            		$('#invalid-email').text('Неверный email!');
-	            		flag = 1;
-	            }
-
-	            if($.trim(contact_subject) == "")
-	            {
-	            		$('#invalid-subject').text('Это обязательное поле!');
-	            		flag = 1;
-	        }
-
-	            if($.trim(contact_message) == "")
-	            {
-	            		$('#invalid-message').text('Это обязательное поле!');
-	            		flag = 1;
-	        }
-
-	            if(flag == 0)
-	            {
-	            	$('#sending_load').show();
-
-		            $.ajax({
-		                url: "Includes/php-files-ajax/contact.php",
-		                type: "POST",
-		                data:{contact_name:contact_name, contact_email:contact_email, contact_subject:contact_subject, contact_message:contact_message},
-		                success: function (data) 
-		                {
-		                	$('#contact_status_message').html(data);
-		                },
-		                beforeSend: function()
-		                {
-					        $('#sending_load').show();
-					    },
-					    complete: function()
-					    {
-					        $('#sending_load').hide();
-					    },
-		                error: function(xhr, status, error) 
-		                {
-		                    alert("Internal ERROR has occured, please, try later!");
-		                }
-		            });
-	            }
-	            
-	        });
-	    }); 
-	    
-	</script>
-
-	<?php if ($is_manager_or_admin): ?>
-	<script type="text/javascript">
-		$(document).on('click', '.add-tile', function(e) {
-			var cat = $(this).data('category-id');
-			$('#add_category_id').val(cat);
-			$('#menu_id').val('');
-			$('#menu_name').val('');
-			$('#menu_description').val('');
-			$('#menu_price').val('');
-			$('#file_status_text').text('Файл не выбран');
-			$('#add_menu_imagePreview').html('<div class="plus-icon">+</div>');
-			$('#addMenuModal .modal-title').text('Добавить позицию');
-			$('.btn-add-custom').text('Добавить');
-			$('#addMenuModal').modal('show');
-		});
-
-		// Quick edit handler: open modal with item data for editing
-		$(document).on('click', '.quick-edit, .edit-pencil', function(e) {
-			e.stopPropagation();
-			var $t = $(this);
-			var menu_id = $t.data('menu-id');
-			var menu_name = $t.data('menu-name') || $t.attr('data-menu-name');
-			var menu_price = $t.data('menu-price') || $t.attr('data-menu-price');
-			var menu_desc = $t.data('menu-desc') || $t.attr('data-menu-desc');
-			var menu_img = $t.data('menu-img') || $t.attr('data-menu-img');
-			var cat = $t.data('category-id') || $t.attr('data-category-id');
-
-			$('#menu_id').val(menu_id);
-			$('#add_category_id').val(cat);
-			$('#menu_name').val(menu_name);
-			$('#menu_price').val(menu_price);
-			$('#menu_description').val(menu_desc);
-			if (menu_img) {
-				$('#add_menu_imagePreview').html('<img src="'+menu_img+'" />');
-				$('#file_status_text').text(menu_img.split('/').pop());
-			} else {
-				$('#add_menu_imagePreview').html('<div class="plus-icon">+</div>');
-				$('#file_status_text').text('Файл не выбран');
-			}
-
-			$('#addMenuModal .modal-title').text('Редактировать позицию');
-			$('.btn-add-custom').text('Сохранить');
-			$('#addMenuModal').modal('show');
-		});
-
-		function readURL_Add(input) {
-			if (input.files && input.files[0]) {
-				var reader = new FileReader();
-				reader.onload = function(e) {
-					$('#add_menu_imagePreview').html('<img src="'+e.target.result+'" />');
-				}
-				reader.readAsDataURL(input.files[0]);
-			}
-		}
-
-		$('#menu_image').change(function(){
-			readURL_Add(this);
-			var name = this.files && this.files[0] ? this.files[0].name : 'Файл не выбран';
-			$('#file_status_text').text(name);
-		});
-
-		$('#addMenuForm').submit(function(e){
-			e.preventDefault();
-			var fd = new FormData(this);
-			$.ajax({
-				url: 'add_menu_front.php',
-				type: 'POST',
-				data: fd,
-				processData: false,
-				contentType: false,
-				dataType: 'json',
-				success: function(resp) {
-					if (resp && resp.success) {
-						window.location.reload();
-					} else {
-						alert(resp.message || 'Ошибка при добавлении меню');
-					}
-				},
-				error: function() { alert('Ошибка сети при добавлении меню'); }
-			});
-		});
-	</script>
-	<?php endif; ?>
-
-	<!-- PRODUCT MODAL -->
-	<div id="productModal">
-		<div class="pm-dialog">
-			<button class="pm-close" onclick="closeProductModal()">✕</button>
-			<div class="pm-img" id="pm_img_wrap">
-				<div class="pm-img-placeholder">🍣</div>
-			</div>
-			<div class="pm-body">
-				<div class="pm-name" id="pm_name"></div>
-				<div class="pm-desc" id="pm_desc"></div>
-				<div class="pm-price-row">
-					<div class="pm-price" id="pm_price"></div>
-					<button class="pm-cart-btn" id="pm_cart_btn">🛒</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<script type="text/javascript">
-		// Product modal
-		var _pmMenuId = null;
-		function openProductModal(menuId, name, price, desc, imgSrc) {
-			_pmMenuId = menuId;
-			document.getElementById('pm_name').textContent = name;
-			document.getElementById('pm_desc').textContent = desc;
-			document.getElementById('pm_price').textContent = price + ' ₽';
-			var imgWrap = document.getElementById('pm_img_wrap');
-			if (imgSrc) {
-				imgWrap.innerHTML = '<img src="' + imgSrc + '" onerror="this.parentNode.innerHTML=\'<div class=pm-img-placeholder>🍣</div>\'">';
-			} else {
-				imgWrap.innerHTML = '<div class="pm-img-placeholder">🍣</div>';
-			}
-			var btn = document.getElementById('pm_cart_btn');
-			btn.className = 'pm-cart-btn';
-			btn.textContent = 'В корзину за ' + price + ' ₽';
-			btn.onclick = function() { addToCartModal(menuId, name, btn); };
-			document.getElementById('productModal').classList.add('open');
-			document.body.style.overflow = 'hidden';
-		}
-		function closeProductModal() {
-			document.getElementById('productModal').classList.remove('open');
-			document.body.style.overflow = '';
-		}
-		document.getElementById('productModal').addEventListener('click', function(e) {
-			if (e.target === this) closeProductModal();
-		});
-		document.addEventListener('keydown', function(e) {
-			if (e.key === 'Escape') closeProductModal();
-		});
-
-		function addToCartModal(menuId, menuName, btn) {
-			$.ajax({
-				url: 'add_to_cart.php',
-				type: 'POST',
-				data: { action: 'add', menu_id: menuId },
-				success: function(response) {
-					if (response.success) {
-						btn.textContent = '✓ Добавлено!';
-						btn.classList.add('added');
-						setTimeout(function() {
-							btn.classList.remove('added');
-							btn.textContent = 'В корзину';
-						}, 1500);
-						var badge = $('#cart-count');
-						if (response.cart_total > 0) badge.text(response.cart_total).show();
-						else badge.hide();
-					}
-				}
-			});
-		}
-
-		function addToCartBtn(btnEl, menuId, menuName) {
-			$.ajax({
-				url: 'add_to_cart.php',
-				type: 'POST',
-				data: { action: 'add', menu_id: menuId },
-				success: function(response) {
-					if (response.success) {
-						$(btnEl).text('✓').addClass('added');
-						setTimeout(function() {
-							$(btnEl).text('В корзину').removeClass('added');
-						}, 1500);
-						var badge = $('#cart-count');
-						if (response.cart_total > 0) badge.text(response.cart_total).show();
-						else badge.hide();
-					}
-				}
-			});
-		}
-
-	    $(document).ready(function() {
-			// Open product modal on card click
-			$(document).on('click', '.menu-item', function(e) {
-				if ($(e.target).closest('.quick-edit, .edit-pencil, .cart-btn').length) return;
-				var menuId    = $(this).data('menu-id');
-				var menuName  = $(this).data('menu-name');
-				var menuPrice = $(this).data('menu-price');
-				var menuDesc  = $(this).data('menu-desc');
-				var menuImg   = $(this).data('menu-img');
-				openProductModal(menuId, menuName, menuPrice, menuDesc, menuImg);
-			});
-
-			// Load cart count on page load
-			$.ajax({
-				url: 'add_to_cart.php',
-				type: 'POST',
-				data: { action: 'count' },
-				success: function(response) {
-					if (response.success && response.cart_total > 0) {
-						$('#cart-count').text(response.cart_total).show();
-					}
-				}
-			});
-	    });
-	</script>
-
-	<script>
-	// Fix anchor scroll offset for fixed navbar
-	(function() {
-		var navbarHeight = document.querySelector('nav, .navbar, header') 
-			? document.querySelector('nav, .navbar, header').offsetHeight 
-			: 90;
-
-		// Apply scroll-padding-top to html so CSS anchors also work
-		document.documentElement.style.scrollPaddingTop = navbarHeight + 'px';
-
-		// Override all anchor clicks with smooth scroll + offset
-		document.addEventListener('click', function(e) {
-			var link = e.target.closest('a[href]');
-			if (!link) return;
-			var href = link.getAttribute('href');
-			if (!href) return;
-
-			// Handle same-page hash links: #home, #menus, index.php#home etc.
-			var hashMatch = href.match(/(^#|[^#]*#)([^?]+)$/);
-			if (!hashMatch) return;
-			var id = hashMatch[2];
-			var target = document.getElementById(id);
-			if (!target) return;
-
-			e.preventDefault();
-			var top = target.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
-			window.scrollTo({ top: top, behavior: 'smooth' });
-			history.pushState(null, '', '#' + id);
-		});
-
-		// Fix initial load if URL has hash
-		if (window.location.hash) {
-			setTimeout(function() {
-				var id = window.location.hash.slice(1);
-				var target = document.getElementById(id);
-				if (target) {
-					var top = target.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
-					window.scrollTo({ top: top, behavior: 'smooth' });
-				}
-			}, 100);
-		}
-	})();
-	</script>
+        // Обновляем счетчик при загрузке
+        updateCartCount();
+    </script>
+</body>
+</html>
